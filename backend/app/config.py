@@ -19,9 +19,12 @@ class Settings(BaseSettings):
     paypal_client_id: str = ""
     paypal_client_secret: str = ""
     paypal_webhook_id: str = ""
-    llm_provider: Literal["fake", "openai", "anthropic"] = "fake"
+    llm_provider: Literal["fake", "groq", "gemini", "mistral"] = "fake"
     llm_model: str = ""
-    llm_api_key: str = ""
+    llm_fallbacks: str = ""  # "gemini:gemini-2.5-flash,mistral:mistral-small-latest"
+    groq_api_key: str = ""
+    gemini_api_key: str = ""
+    mistral_api_key: str = ""
     agents_enabled: list[str] = ["collector", "sentinel", "guardian", "defender"]
     approval_threshold_cents: int = 10000
     kill_switch: bool = False
@@ -34,6 +37,10 @@ class Settings(BaseSettings):
         if isinstance(v, str):
             return [a.strip() for a in v.split(",") if a.strip()]
         return v
+
+    @property
+    def llm_fallback_chain(self) -> list[tuple[str, str]]:
+        return [tuple(x.strip().split(":", 1)) for x in self.llm_fallbacks.split(",") if x.strip()]
 
     @model_validator(mode="after")
     def _refuse_live(self) -> "Settings":

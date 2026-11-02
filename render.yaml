@@ -20,7 +20,13 @@ services:
         value: fake
       - key: LLM_MODEL
         sync: false
-      - key: LLM_API_KEY
+      - key: LLM_FALLBACKS
+        sync: false
+      - key: GROQ_API_KEY
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: MISTRAL_API_KEY
         sync: false
       - key: AGENTS_ENABLED
         value: collector,sentinel,guardian,defender
