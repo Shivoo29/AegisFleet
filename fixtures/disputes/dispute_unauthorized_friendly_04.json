@@ -1,0 +1,61 @@
+{
+  "type": "dispute.created",
+  "subject_id": "PP-D-1004",
+  "dispute": {
+    "dispute_id": "PP-D-1004",
+    "reason": "UNAUTHORIZED",
+    "status": "OPEN",
+    "amount": {"value": "780.00", "currency_code": "USD"},
+    "buyer": {"name": "Ethan Brooks", "email": "ethan.brooks@example.com"},
+    "seller_transactions": [{"transaction_id": "TXN-9004", "invoice_id": "INV-1004"}],
+    "create_time": "2026-10-08T13:15:00Z"
+  },
+  "ledger_seed": [
+    {
+      "kind": "event",
+      "payload": {
+        "type": "payment.captured",
+        "verified": true,
+        "amount_cents": 78000,
+        "currency": "USD",
+        "invoice_id": "INV-1004",
+        "transaction_id": "TXN-9004",
+        "buyer_email": "ethan.brooks@example.com"
+      }
+    },
+    {
+      "kind": "event",
+      "payload": {
+        "type": "shipment.created",
+        "verified": true,
+        "invoice_id": "INV-1004",
+        "tracking_number": "1Z88R2E90312345671",
+        "carrier": "UPS",
+        "shipped_at": "2026-10-03",
+        "address_match": true
+      }
+    },
+    {
+      "kind": "event",
+      "payload": {
+        "type": "delivery.confirmed",
+        "verified": true,
+        "invoice_id": "INV-1004",
+        "tracking_number": "1Z88R2E90312345671",
+        "delivered_at": "2026-10-05",
+        "delivered_to": "Ethan Brooks, 902 Cedar Lane, Seattle, WA",
+        "signed_by": "E. BROOKS"
+      }
+    },
+    {
+      "kind": "note",
+      "payload": {
+        "type": "buyer.message",
+        "invoice_id": "INV-1004",
+        "message": "Arrived early, exactly as described. Thanks!"
+      }
+    }
+  ],
+  "expected_action": "provide_evidence",
+  "expected_classification": "friendly_fraud"
+}

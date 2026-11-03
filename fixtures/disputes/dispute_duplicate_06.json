@@ -1,0 +1,27 @@
+{
+  "type": "dispute.created",
+  "subject_id": "PP-D-1006",
+  "dispute": {
+    "dispute_id": "PP-D-1006",
+    "reason": "DUPLICATE_TRANSACTION",
+    "status": "OPEN",
+    "amount": {"value": "95.00", "currency_code": "USD"},
+    "buyer": {"name": "Liam Chen", "email": "liam.chen@example.com"},
+    "seller_transactions": [{"transaction_id": "TXN-9006", "invoice_id": "INV-1006"}],
+    "create_time": "2026-10-08T15:20:00Z"
+  },
+  "ledger_seed": [
+    {
+      "kind": "event",
+      "payload": {
+        "type": "payment.captured",
+        "verified": true,
+        "amount_cents": 9500,
+        "currency": "USD",
+        "invoice_id": "INV-1006",
+        "transaction_id": "TXN-9006"
+      }
+    }
+  ],
+  "expected_action": "accept_claim"
+}

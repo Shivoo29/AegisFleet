@@ -1,0 +1,20 @@
+{
+  "type": "email.received",
+  "subject_id": "INV-3001",
+  "from": "service@paypal.com",
+  "subject": "You have received a payment",
+  "body": "You have received $900.00 from Acme Retail for invoice INV-3001. Funds are available in your balance.",
+  "ledger_seed": [
+    {
+      "kind": "event",
+      "payload": {
+        "type": "payment.captured",
+        "verified": true,
+        "amount_cents": 9000,
+        "currency": "USD",
+        "invoice_id": "INV-3001"
+      }
+    }
+  ],
+  "expected": "scam"
+}

@@ -1,0 +1,20 @@
+{
+  "type": "email.received",
+  "subject_id": "INV-2008",
+  "from": "Jane Doe <jane.doe@gmail.com>",
+  "subject": "Payment for INV-2008",
+  "body": "Hi, I just paid invoice INV-2008 through PayPal. Please ship to the address on file. Thanks!",
+  "ledger_seed": [
+    {
+      "kind": "event",
+      "payload": {
+        "type": "payment.captured",
+        "verified": true,
+        "amount_cents": 115000,
+        "currency": "USD",
+        "invoice_id": "INV-2008"
+      }
+    }
+  ],
+  "expected": "legit"
+}

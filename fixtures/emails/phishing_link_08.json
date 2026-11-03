@@ -1,0 +1,8 @@
+{
+  "type": "email.received",
+  "subject_id": "ACC-PAYOUT-7781",
+  "from": "PayPal <service@paypal.com.account-secure-login.net>",
+  "subject": "Action required: confirm your payout account",
+  "body": "We could not verify your payout account. Please sign in to verify your identity and enter your one-time code at https://paypal.com.account-secure-login.net/verify within 12 hours.",
+  "expected": "scam"
+}

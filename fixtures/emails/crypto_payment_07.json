@@ -1,0 +1,8 @@
+{
+  "type": "email.received",
+  "subject_id": "INV-2088",
+  "from": "Payments Desk <payments@cryptopay-settlements.io>",
+  "subject": "INV-2088 paid in USDT",
+  "body": "Your invoice INV-2088 has been paid in USDT. Confirm your wallet address and pay the network release fee of $45.00 so we can transfer $1,100.00 to your account.",
+  "expected": "scam"
+}

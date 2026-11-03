@@ -1,0 +1,20 @@
+{
+  "type": "email.received",
+  "subject_id": "INV-2006",
+  "from": "PayPal <payments@paypal.com>",
+  "subject": "You've received a payment",
+  "body": "You've received a payment of $49.99 for INV-2006 from Northstar Goods.",
+  "ledger_seed": [
+    {
+      "kind": "event",
+      "payload": {
+        "type": "payment.captured",
+        "verified": true,
+        "amount_cents": 4999,
+        "currency": "USD",
+        "invoice_id": "INV-2006"
+      }
+    }
+  ],
+  "expected": "legit"
+}

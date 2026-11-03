@@ -1,0 +1,50 @@
+{
+  "type": "dispute.created",
+  "subject_id": "PP-D-1003",
+  "dispute": {
+    "dispute_id": "PP-D-1003",
+    "reason": "MERCHANDISE_OR_SERVICE_NOT_RECEIVED",
+    "status": "OPEN",
+    "amount": {"value": "340.00", "currency_code": "USD"},
+    "buyer": {"name": "Priya Nair", "email": "priya.nair@example.com"},
+    "seller_transactions": [{"transaction_id": "TXN-9003", "invoice_id": "INV-1003"}],
+    "create_time": "2026-10-08T12:05:00Z"
+  },
+  "ledger_seed": [
+    {
+      "kind": "event",
+      "payload": {
+        "type": "payment.captured",
+        "verified": true,
+        "amount_cents": 34000,
+        "currency": "USD",
+        "invoice_id": "INV-1003",
+        "transaction_id": "TXN-9003"
+      }
+    },
+    {
+      "kind": "event",
+      "payload": {
+        "type": "shipment.created",
+        "verified": true,
+        "invoice_id": "INV-1003",
+        "tracking_number": "9400111899223856928471",
+        "carrier": "USPS",
+        "shipped_at": "2026-10-02",
+        "address_match": false
+      }
+    },
+    {
+      "kind": "event",
+      "payload": {
+        "type": "delivery.confirmed",
+        "verified": true,
+        "invoice_id": "INV-1003",
+        "tracking_number": "9400111899223856928471",
+        "delivered_at": "2026-10-05",
+        "delivered_to": "18 Oak Avenue, Denver, CO"
+      }
+    }
+  ],
+  "expected_action": "offer_refund"
+}

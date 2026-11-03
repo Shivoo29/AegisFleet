@@ -1,0 +1,20 @@
+{
+  "type": "email.received",
+  "subject_id": "INV-2010",
+  "from": "PayPal <service@paypal.com>",
+  "subject": "Payment received",
+  "body": "You have received $600.00 for INV-2010. Funds are available in your balance.",
+  "ledger_seed": [
+    {
+      "kind": "event",
+      "payload": {
+        "type": "payment.captured",
+        "verified": true,
+        "amount_cents": 60000,
+        "currency": "USD",
+        "invoice_id": "INV-2010"
+      }
+    }
+  ],
+  "expected": "legit"
+}
