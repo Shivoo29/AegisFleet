@@ -1,0 +1,59 @@
+{
+  "type": "dispute.created",
+  "subject_id": "PP-D-1007",
+  "dispute": {
+    "dispute_id": "PP-D-1007",
+    "reason": "MERCHANDISE_OR_SERVICE_NOT_AS_DESCRIBED",
+    "status": "OPEN",
+    "amount": {"value": "430.00", "currency_code": "USD"},
+    "buyer": {"name": "Grace Kim", "email": "grace.kim@example.com"},
+    "seller_transactions": [{"transaction_id": "TXN-9007", "invoice_id": "INV-1007"}],
+    "create_time": "2026-10-08T16:00:00Z"
+  },
+  "ledger_seed": [
+    {
+      "kind": "event",
+      "payload": {
+        "type": "payment.captured",
+        "verified": true,
+        "amount_cents": 43000,
+        "currency": "USD",
+        "invoice_id": "INV-1007",
+        "transaction_id": "TXN-9007",
+        "paid_at": "2026-10-01"
+      }
+    },
+    {
+      "kind": "event",
+      "payload": {
+        "type": "shipment.created",
+        "verified": true,
+        "invoice_id": "INV-1007",
+        "tracking_number": "1Z77R2E90312345672",
+        "carrier": "UPS",
+        "shipped_at": "2026-10-02",
+        "address_match": true
+      }
+    },
+    {
+      "kind": "event",
+      "payload": {
+        "type": "delivery.confirmed",
+        "verified": true,
+        "invoice_id": "INV-1007",
+        "tracking_number": "1Z77R2E90312345672",
+        "delivered_at": "2026-10-04"
+      }
+    },
+    {
+      "kind": "note",
+      "payload": {
+        "type": "buyer.message",
+        "invoice_id": "INV-1007",
+        "message": "The item arrived cracked and does not match the photos in the listing."
+      }
+    }
+  ],
+  "expected_action": "offer_refund",
+  "expected_classification": "genuine"
+}

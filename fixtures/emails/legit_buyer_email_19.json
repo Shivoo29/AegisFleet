@@ -1,0 +1,20 @@
+{
+  "type": "email.received",
+  "subject_id": "INV-2009",
+  "from": "Mike Alvarez <mike@example.com>",
+  "subject": "Payment sent",
+  "body": "Payment for INV-2009 sent via PayPal. Thanks again.",
+  "ledger_seed": [
+    {
+      "kind": "event",
+      "payload": {
+        "type": "payment.captured",
+        "verified": true,
+        "amount_cents": 1825,
+        "currency": "USD",
+        "invoice_id": "INV-2009"
+      }
+    }
+  ],
+  "expected": "legit"
+}

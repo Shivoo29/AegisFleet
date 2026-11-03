@@ -1,0 +1,20 @@
+{
+  "type": "email.received",
+  "subject_id": "INV-2004",
+  "from": "PayPal <payments@paypal.com>",
+  "subject": "Payment sent to your account",
+  "body": "A payment of $480.00 has been sent to your account for INV-2004. It is available now.",
+  "ledger_seed": [
+    {
+      "kind": "event",
+      "payload": {
+        "type": "payment.captured",
+        "verified": true,
+        "amount_cents": 48000,
+        "currency": "USD",
+        "invoice_id": "INV-2004"
+      }
+    }
+  ],
+  "expected": "legit"
+}

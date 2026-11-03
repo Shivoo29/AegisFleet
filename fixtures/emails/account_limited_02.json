@@ -1,0 +1,8 @@
+{
+  "type": "email.received",
+  "subject_id": "ACC-SEC-3921",
+  "from": "PayPal Security <security@paypal-verify-center.com>",
+  "subject": "Urgent: your account has been limited",
+  "body": "Your PayPal account has been limited. You must verify your identity within 24 hours or the account will be suspended. Log in to confirm your account: http://paypal-verify-center.com/login",
+  "expected": "scam"
+}

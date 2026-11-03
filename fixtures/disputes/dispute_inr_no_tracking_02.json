@@ -1,0 +1,27 @@
+{
+  "type": "dispute.created",
+  "subject_id": "PP-D-1002",
+  "dispute": {
+    "dispute_id": "PP-D-1002",
+    "reason": "MERCHANDISE_OR_SERVICE_NOT_RECEIVED",
+    "status": "OPEN",
+    "amount": {"value": "220.00", "currency_code": "USD"},
+    "buyer": {"name": "Noah Patel", "email": "noah.patel@example.com"},
+    "seller_transactions": [{"transaction_id": "TXN-9002", "invoice_id": "INV-1002"}],
+    "create_time": "2026-10-08T11:30:00Z"
+  },
+  "ledger_seed": [
+    {
+      "kind": "event",
+      "payload": {
+        "type": "payment.captured",
+        "verified": true,
+        "amount_cents": 22000,
+        "currency": "USD",
+        "invoice_id": "INV-1002",
+        "transaction_id": "TXN-9002"
+      }
+    }
+  ],
+  "expected_action": "offer_refund"
+}

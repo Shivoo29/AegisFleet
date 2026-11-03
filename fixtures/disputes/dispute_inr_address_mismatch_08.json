@@ -1,0 +1,51 @@
+{
+  "type": "dispute.created",
+  "subject_id": "PP-D-1008",
+  "dispute": {
+    "dispute_id": "PP-D-1008",
+    "reason": "MERCHANDISE_OR_SERVICE_NOT_RECEIVED",
+    "status": "OPEN",
+    "amount": {"value": "1200.00", "currency_code": "USD"},
+    "buyer": {"name": "Olivia Mensah", "email": "olivia.mensah@example.com"},
+    "seller_transactions": [{"transaction_id": "TXN-9008", "invoice_id": "INV-1008"}],
+    "create_time": "2026-10-08T16:45:00Z"
+  },
+  "ledger_seed": [
+    {
+      "kind": "event",
+      "payload": {
+        "type": "payment.captured",
+        "verified": true,
+        "amount_cents": 120000,
+        "currency": "USD",
+        "invoice_id": "INV-1008",
+        "transaction_id": "TXN-9008",
+        "paid_at": "2026-09-29"
+      }
+    },
+    {
+      "kind": "event",
+      "payload": {
+        "type": "shipment.created",
+        "verified": true,
+        "invoice_id": "INV-1008",
+        "tracking_number": "1Z55R2E90312345673",
+        "carrier": "UPS",
+        "shipped_at": "2026-09-30",
+        "address_match": false
+      }
+    },
+    {
+      "kind": "event",
+      "payload": {
+        "type": "delivery.confirmed",
+        "verified": true,
+        "invoice_id": "INV-1008",
+        "tracking_number": "1Z55R2E90312345673",
+        "delivered_at": "2026-10-03",
+        "delivered_to": "27 Birch Road, Portland, OR"
+      }
+    }
+  ],
+  "expected_action": "offer_refund"
+}
