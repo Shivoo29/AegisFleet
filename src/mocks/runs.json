@@ -1,0 +1,14 @@
+[
+  {
+    "id": "run_19",
+    "agent": "sentinel",
+    "event_type": "email.received",
+    "status": "done",
+    "started_at": "2026-11-05T10:20:02Z",
+    "steps": [
+      { "kind": "tool", "summary": "ledger: no verified payment for INV-0007" },
+      { "kind": "llm", "summary": "verdict: scam (0.93)" }
+    ],
+    "output": { "verdict": "scam", "red_flags": ["sender is not paypal.com"] }
+  }
+]
