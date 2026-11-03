@@ -1,0 +1,20 @@
+{
+  "type": "email.received",
+  "subject_id": "INV-2003",
+  "from": "PayPal <service@paypal.com>",
+  "subject": "Payment received from Brightline Studio",
+  "body": "You have received $75.50 from Brightline Studio for INV-2003. Buyer note: Thanks for the fast shipping!",
+  "ledger_seed": [
+    {
+      "kind": "event",
+      "payload": {
+        "type": "payment.captured",
+        "verified": true,
+        "amount_cents": 7550,
+        "currency": "USD",
+        "invoice_id": "INV-2003"
+      }
+    }
+  ],
+  "expected": "legit"
+}

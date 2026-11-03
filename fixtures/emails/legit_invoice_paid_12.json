@@ -1,0 +1,20 @@
+{
+  "type": "email.received",
+  "subject_id": "INV-2002",
+  "from": "PayPal <service@paypal.com>",
+  "subject": "Invoice INV-2002 has been paid",
+  "body": "Invoice INV-2002 has been paid. $1,000.00 USD was added to your PayPal balance.",
+  "ledger_seed": [
+    {
+      "kind": "event",
+      "payload": {
+        "type": "invoice.paid",
+        "verified": true,
+        "amount_cents": 100000,
+        "currency": "USD",
+        "invoice_id": "INV-2002"
+      }
+    }
+  ],
+  "expected": "legit"
+}

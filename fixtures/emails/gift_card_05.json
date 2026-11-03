@@ -1,0 +1,8 @@
+{
+  "type": "email.received",
+  "subject_id": "INV-1522",
+  "from": "Michael Tan <michael.tan@outlook.com>",
+  "subject": "Payment released after gift card confirmation",
+  "body": "Payment for INV-1522 is approved. Kindly buy $500.00 in Apple gift cards and send me the codes so the payment can be released immediately. Urgent.",
+  "expected": "scam"
+}
