@@ -1,0 +1,66 @@
+[
+  {
+    "id": 12,
+    "kind": "event",
+    "subject_id": "INV-0007",
+    "summary": "Invoice INV-0007 sent to client@example.com for $600.00",
+    "payload": { "invoice_id": "INV-0007", "amount_cents": 60000, "currency": "USD" },
+    "prev_hash": "0".repeat(64),
+    "hash": "a1b2c3d4e5f6789012345678901234567890abcdef1234567890abcdef123456",
+    "created_at": "2026-11-03T08:12:00Z"
+  },
+  {
+    "id": 13,
+    "kind": "agent_step",
+    "subject_id": "INV-0007",
+    "summary": "Collector sent polite reminder #1 for INV-0007",
+    "payload": { "agent": "collector", "tone": "polite", "channel": "email" },
+    "prev_hash": "a1b2c3d4e5f6789012345678901234567890abcdef1234567890abcdef123456",
+    "hash": "b2c3d4e5f6789012345678901234567890abcdef1234567890abcdef12345678",
+    "created_at": "2026-11-04T09:00:11Z"
+  },
+  {
+    "id": 14,
+    "kind": "event",
+    "subject_id": "email-scam-01",
+    "summary": "Email received from paypa1-support.com claiming payment for INV-0007",
+    "payload": { "from": "support@paypa1-support.com", "subject": "Payment received — ship now" },
+    "prev_hash": "b2c3d4e5f6789012345678901234567890abcdef1234567890abcdef12345678",
+    "hash": "c3d4e5f6789012345678901234567890abcdef1234567890abcdef1234567890",
+    "created_at": "2026-11-05T10:19:44Z"
+  },
+  {
+    "id": 15,
+    "kind": "decision",
+    "subject_id": "email-scam-01",
+    "summary": "Sentinel flagged fake payment email from paypa1-support.com (confidence 0.93)",
+    "payload": {
+      "verdict": "scam",
+      "red_flags": ["sender domain is not paypal.com", "no matching verified payment in ledger"],
+      "agent": "sentinel"
+    },
+    "prev_hash": "c3d4e5f6789012345678901234567890abcdef1234567890abcdef1234567890",
+    "hash": "d4e5f6789012345678901234567890abcdef1234567890abcdef123456789012",
+    "created_at": "2026-11-05T10:20:05Z"
+  },
+  {
+    "id": 16,
+    "kind": "event",
+    "subject_id": "PAY-9X2K",
+    "summary": "Payment captured $600.00 USD for INV-0007 (webhook verified)",
+    "payload": { "capture_id": "PAY-9X2K", "amount_cents": 60000, "currency": "USD", "invoice_id": "INV-0007" },
+    "prev_hash": "d4e5f6789012345678901234567890abcdef1234567890abcdef123456789012",
+    "hash": "e5f6789012345678901234567890abcdef1234567890abcdef12345678901234",
+    "created_at": "2026-11-05T11:02:18Z"
+  },
+  {
+    "id": 17,
+    "kind": "approval",
+    "subject_id": "PP-D-12345",
+    "summary": "Defender requests approval to submit evidence for dispute PP-D-12345",
+    "payload": { "agent": "defender", "tool": "provide_dispute_evidence", "amount_cents": 60000 },
+    "prev_hash": "e5f6789012345678901234567890abcdef1234567890abcdef12345678901234",
+    "hash": "f6789012345678901234567890abcdef1234567890abcdef1234567890123456",
+    "created_at": "2026-11-05T10:22:40Z"
+  }
+]
