@@ -567,3 +567,12 @@ body {
   clip: rect(0, 0, 0, 0);
   border: 0;
 }
+.ag-theme-alpine .cell-mono {
+  font-family: var(--font-mono);
+  font-size: 12px;
+}
+.ag-theme-alpine .cell-muted {
+  color: var(--muted);
+}
+
+
