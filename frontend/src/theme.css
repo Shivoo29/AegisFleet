@@ -567,6 +567,18 @@ body {
   clip: rect(0, 0, 0, 0);
   border: 0;
 }
+
+.label {
+  display: block;
+  font-size: var(--text-xs);
+  font-weight: 600;
+  color: var(--muted);
+  margin-bottom: 0.3rem;
+  letter-spacing: 0.02em;
+}
+
+
+/* AG Grid cell helpers (avoid cellStyle TS friction) */
 .ag-theme-alpine .cell-mono {
   font-family: var(--font-mono);
   font-size: 12px;
@@ -574,5 +586,3 @@ body {
 .ag-theme-alpine .cell-muted {
   color: var(--muted);
 }
-
-

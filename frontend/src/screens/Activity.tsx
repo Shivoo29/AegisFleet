@@ -17,19 +17,16 @@ export default function Activity() {
 
   const runs = data ?? []
 
-  return (
-    <div className="screen">
-      <div className="screen__header">
-        <div>
-          <h2 className="screen__title">Agent activity</h2>
-          <p className="screen__subtitle">
-            Every agent run, expandable into LLM, tool and decision steps.
-          </p>
-        </div>
-        {runs.length > 0 && (
-          <span className="badge badge--gray">{runs.length} recent</span>
-        )}
+return (
+  <div className="screen">
+    <div className="screen__header">
+      <div>
+        <h2 className="screen__title">Agent activity</h2>
+        <p className="screen__subtitle">
+          Every agent run, expandable into LLM, tool and decision steps.
+        </p>
       </div>
+    </div>
 
       <div className="screen__body">
         {loading && !data && <StateBlock kind="loading" />}

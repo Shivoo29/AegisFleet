@@ -46,6 +46,7 @@ export default function Ledger() {
     }
     return list
   }, [data, kindFilter, subjectFilter])
+
   const colDefs = useMemo(
     () =>
       [
@@ -92,8 +93,6 @@ export default function Ledger() {
       ] as ColDef<LedgerEntry>[],
     [],
   )
- 
-  
 
   const defaultColDef = useMemo(
     () => ({

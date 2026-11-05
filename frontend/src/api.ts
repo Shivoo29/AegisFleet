@@ -1,4 +1,4 @@
-/** API client. Default mocks until VITE_USE_MOCKS=false (Thursday real API). */
+/** API client. Default mocks until VITE_USE_MOCKS=false. */
 
 import {
   summaryMock,
@@ -9,6 +9,8 @@ import {
   healthMock,
   disputesMock,
   disputeDetailMock,
+  invoicesMock,
+  inboxScamVerdict,
 } from './mocks/data'
 
 export const USE_MOCKS = import.meta.env.VITE_USE_MOCKS !== 'false'
@@ -24,6 +26,7 @@ const MOCKS: Record<string, unknown> = {
   health: healthMock,
   disputes: disputesMock,
   dispute_detail: disputeDetailMock,
+  invoices: invoicesMock,
 }
 
 function loadMock<T>(name: string): T {
@@ -42,6 +45,8 @@ export async function get<T>(path: string): Promise<T> {
     if (path.startsWith('/api/health')) return loadMock<T>('health')
     if (path.match(/^\/api\/disputes\/[^/]+$/)) return loadMock<T>('dispute_detail')
     if (path.startsWith('/api/disputes')) return loadMock<T>('disputes')
+    if (path.startsWith('/api/invoices')) return loadMock<T>('invoices')
+    if (path.startsWith('/api/demo/status')) return { ok: true } as T
     return [] as unknown as T
   }
   const res = await fetch(`${BASE}${path}`, { credentials: 'include' })
@@ -58,8 +63,11 @@ export async function post<T>(path: string, body: unknown): Promise<T> {
       return { ok: true, status: 'rejected' } as T
     }
     if (path === '/api/ledger/verify') return loadMock<T>('verify')
-    if (path === '/api/inbox') {
-      return { run_id: 'run_19', ok: true } as T
+    if (path === '/api/inbox') return { ...inboxScamVerdict } as T
+    if (path === '/api/shipments') return { ok: true, sealed: true } as T
+    if (path.startsWith('/api/demo/')) {
+      const name = path.replace('/api/demo/', '')
+      return { ok: true, message: `Demo beat "${name}" ran on mocks` } as T
     }
     return { ok: true } as T
   }

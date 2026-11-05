@@ -4,6 +4,11 @@ import Ledger from './screens/Ledger'
 import Approvals from './screens/Approvals'
 import Activity from './screens/Activity'
 import Disputes from './screens/Disputes'
+import Inbox from './screens/Inbox'
+import Invoices from './screens/Invoices'
+import Overview from './screens/Overview'
+import Health from './screens/Health'
+import Demo from './screens/Demo'
 
 const TABS = [
   'Overview',
@@ -19,30 +24,8 @@ const TABS = [
 
 type Tab = (typeof TABS)[number]
 
-function Placeholder({ name }: { name: string }) {
-  return (
-    <div className="screen">
-      <div className="screen__header">
-        <div>
-          <h2 className="screen__title">{name}</h2>
-          <p className="screen__subtitle">Coming in the next daily slice.</p>
-        </div>
-      </div>
-      <div className="screen__body">
-        <div className="state">
-          <div className="state__icon">◌</div>
-          <p className="state__title">Not built yet</p>
-          <p className="state__desc">
-            Ledger, Approvals, Activity and Disputes are ready. Remaining screens follow the timeline.
-          </p>
-        </div>
-      </div>
-    </div>
-  )
-}
-
 export default function App() {
-  const [active, setActive] = useState<Tab>('Activity')
+  const [active, setActive] = useState<Tab>('Overview')
 
   return (
     <div className="app">
@@ -74,14 +57,15 @@ export default function App() {
       </header>
 
       <main className="main">
+        {active === 'Overview' && <Overview />}
         {active === 'Ledger' && <Ledger />}
         {active === 'Approvals' && <Approvals />}
         {active === 'Activity' && <Activity />}
         {active === 'Disputes' && <Disputes />}
-        {active !== 'Ledger' &&
-          active !== 'Approvals' &&
-          active !== 'Activity' &&
-          active !== 'Disputes' && <Placeholder name={active} />}
+        {active === 'Inbox' && <Inbox />}
+        {active === 'Invoices' && <Invoices />}
+        {active === 'Health' && <Health />}
+        {active === 'Demo' && <Demo />}
       </main>
     </div>
   )
