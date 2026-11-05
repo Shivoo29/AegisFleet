@@ -46,51 +46,54 @@ export default function Ledger() {
     }
     return list
   }, [data, kindFilter, subjectFilter])
-
-  const colDefs = useMemo<ColDef<LedgerEntry>[]>(
-    () => [
-      {
-        field: 'id',
-        headerName: 'ID',
-        width: 70,
-        maxWidth: 80,
-      },
-      {
-        field: 'kind',
-        headerName: 'Kind',
-        width: 120,
-        cellRenderer: KindCell,
-      },
-      {
-        field: 'subject_id',
-        headerName: 'Subject',
-        width: 140,
-        cellStyle: { fontFamily: 'var(--font-mono)', fontSize: '12px' },
-      },
-      {
-        field: 'summary',
-        headerName: 'Summary',
-        flex: 1,
-        minWidth: 280,
-        wrapText: true,
-        autoHeight: true,
-      },
-      {
-        field: 'created_at',
-        headerName: 'When',
-        width: 110,
-        valueFormatter: (p) => (p.value ? relativeTime(p.value) : ''),
-      },
-      {
-        field: 'hash',
-        headerName: 'Hash',
-        width: 110,
-        valueFormatter: (p) => (p.value ? String(p.value).slice(0, 10) + '…' : ''),
-        cellStyle: { fontFamily: 'var(--font-mono)', fontSize: '11px', color: 'var(--muted)' },
-      },
-    ],
+  const colDefs = useMemo(
+    () =>
+      [
+        {
+          field: 'id',
+          headerName: 'ID',
+          width: 70,
+          maxWidth: 80,
+        },
+        {
+          field: 'kind',
+          headerName: 'Kind',
+          width: 120,
+          cellRenderer: KindCell,
+        },
+        {
+          field: 'subject_id',
+          headerName: 'Subject',
+          width: 140,
+          cellClass: 'cell-mono',
+        },
+        {
+          field: 'summary',
+          headerName: 'Summary',
+          flex: 1,
+          minWidth: 280,
+          wrapText: true,
+          autoHeight: true,
+        },
+        {
+          field: 'created_at',
+          headerName: 'When',
+          width: 110,
+          valueFormatter: (p: { value?: string }) => (p.value ? relativeTime(p.value) : ''),
+        },
+        {
+          field: 'hash',
+          headerName: 'Hash',
+          width: 110,
+          valueFormatter: (p: { value?: string }) =>
+            p.value ? String(p.value).slice(0, 10) + '…' : '',
+          cellClass: 'cell-mono cell-muted',
+        },
+      ] as ColDef<LedgerEntry>[],
     [],
   )
+ 
+  
 
   const defaultColDef = useMemo(
     () => ({
