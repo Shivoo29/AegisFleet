@@ -6,9 +6,56 @@
     "status": "done",
     "started_at": "2026-11-05T10:20:02Z",
     "steps": [
-      { "kind": "tool", "summary": "ledger: no verified payment for INV-0007" },
-      { "kind": "llm", "summary": "verdict: scam (0.93)" }
+      { "kind": "tool", "summary": "ledger.find: no verified payment for INV-0007" },
+      { "kind": "llm", "summary": "verdict: scam (confidence 0.93)" },
+      { "kind": "note", "summary": "Ship gate kept closed; seller notified in console" }
     ],
-    "output": { "verdict": "scam", "red_flags": ["sender is not paypal.com"] }
+    "output": {
+      "verdict": "scam",
+      "confidence": 0.93,
+      "red_flags": ["sender domain is not paypal.com", "no matching verified payment in ledger"]
+    }
+  },
+  {
+    "id": "run_18",
+    "agent": "defender",
+    "event_type": "dispute.created",
+    "status": "done",
+    "started_at": "2026-11-05T10:22:10Z",
+    "steps": [
+      { "kind": "tool", "summary": "ledger: pulled tracking + delivery proof for INV-0007" },
+      { "kind": "llm", "summary": "classification: friendly_fraud (0.88)" },
+      { "kind": "tool", "summary": "gateway: provide_dispute_evidence → HOLD (needs approval)" }
+    ],
+    "output": {
+      "dispute_id": "PP-D-12345",
+      "classification": "friendly_fraud",
+      "recommended_action": "provide_evidence"
+    }
+  },
+  {
+    "id": "run_17",
+    "agent": "collector",
+    "event_type": "invoice.overdue",
+    "status": "done",
+    "started_at": "2026-11-04T09:00:00Z",
+    "steps": [
+      { "kind": "llm", "summary": "tone selected: polite (first reminder)" },
+      { "kind": "tool", "summary": "send_invoice_reminder for INV-0007" }
+    ],
+    "output": { "reminder_number": 1, "tone": "polite" }
+  },
+  {
+    "id": "run_16",
+    "agent": "guardian",
+    "event_type": "payment.captured",
+    "status": "done",
+    "started_at": "2026-11-05T11:02:20Z",
+    "steps": [
+      { "kind": "tool", "summary": "webhook signature verified" },
+      { "kind": "tool", "summary": "ledger.seal: payment PAY-9X2K for INV-0007" },
+      { "kind": "note", "summary": "Ship gate opened" }
+    ],
+    "output": { "capture_id": "PAY-9X2K", "amount_cents": 60000 }
   }
 ]
