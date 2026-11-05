@@ -278,8 +278,67 @@ export const disputeDetailMock = {
       },
     ],
     note_to_paypal:
-      "The item (custom necklace, INV-0007) was shipped with online-verifiable tracking and marked delivered to the address on the order. All proof is sealed in our Proof Ledger. We request the dispute be resolved in the seller's favour under Seller Protection.",
+      'The item (custom necklace, INV-0007) was shipped with online-verifiable tracking and marked delivered to the address on the order. All proof is sealed in our Proof Ledger. We request the dispute be resolved in the seller\'s favour under Seller Protection.',
     recommended_action: 'provide_evidence' as const,
   },
   approval_id: 'apr_7',
+}
+
+export const invoicesMock = [
+  {
+    id: 'INV-0007',
+    buyer_email: 'client@example.com',
+    amount_cents: 60000,
+    currency: 'USD',
+    status: 'paid',
+    days_overdue: 0,
+    risk: 'low',
+    shipped: false,
+    tracking_number: null as string | null,
+    created_at: '2026-11-03T08:12:00Z',
+    paid_at: '2026-11-05T11:02:18Z',
+  },
+  {
+    id: 'INV-0006',
+    buyer_email: 'buyer2@example.com',
+    amount_cents: 18500,
+    currency: 'USD',
+    status: 'overdue',
+    days_overdue: 5,
+    risk: 'medium',
+    shipped: false,
+    tracking_number: null as string | null,
+    created_at: '2026-10-28T14:00:00Z',
+    paid_at: null as string | null,
+  },
+  {
+    id: 'INV-0005',
+    buyer_email: 'safe@example.com',
+    amount_cents: 42000,
+    currency: 'USD',
+    status: 'paid',
+    days_overdue: 0,
+    risk: 'low',
+    shipped: true,
+    tracking_number: '1Z999AA10123456784',
+    created_at: '2026-10-20T10:00:00Z',
+    paid_at: '2026-10-21T16:30:00Z',
+  },
+]
+
+/** Canned Sentinel response when a scam-looking email is pasted in Inbox. */
+export const inboxScamVerdict = {
+  run_id: 'run_19',
+  verdict: {
+    verdict: 'scam' as const,
+    confidence: 0.93,
+    matched_payment_entry_id: null as number | null,
+    red_flags: [
+      'sender domain is not paypal.com (paypa1-support.com)',
+      'no matching verified payment in Proof Ledger',
+      'urgent language pressuring seller to ship immediately',
+    ],
+    explanation:
+      'This message claims payment for INV-0007 but the sender is not PayPal and the ledger has no verified capture for that invoice at the time the email arrived. Treat as a fake payment notice.',
+  },
 }
