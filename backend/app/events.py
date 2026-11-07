@@ -10,18 +10,21 @@ from app.ledger import seal
 from app.models import Event
 
 
-def store_event(event: Event) -> None:
+def store_event(event: Event) -> bool:
+    """Insert once. False if this event (or PayPal event id) was already stored."""
     with conn() as c:
         with c.cursor() as cur:
             cur.execute(
                 "INSERT INTO events (id, paypal_event_id, type, source, subject_id, data, verified, rejected) "
-                "VALUES (%s,%s,%s,%s,%s,%s,%s,%s) ON CONFLICT (id) DO NOTHING",
+                "VALUES (%s,%s,%s,%s,%s,%s,%s,%s) ON CONFLICT DO NOTHING RETURNING id",
                 (
                     event.id, event.data.get("id") if event.source == "paypal" else None, event.type, event.source, event.subject_id,
-                    json.dumps(event.data), event.verified, False,
+                    json.dumps(event.data), event.verified, not event.verified,
                 ),
             )
+            inserted = cur.fetchone() is not None
         c.commit()
+    return inserted
 
 
 def route(event: Event) -> None:
@@ -30,7 +33,9 @@ def route(event: Event) -> None:
         kind="event",
         subject_id=event.subject_id,
         summary=f"{event.type} from {event.source}",
-        payload={"event_id": event.id, "type": event.type, "source": event.source, "verified": event.verified},
+        payload={"event_id": event.id, "type": event.type, "source": event.source, "verified": event.verified,
+                 # money facts agents match against (Sentinel: amount check)
+                 **{k: event.data[k] for k in ("amount_cents", "currency", "invoice_id") if event.data.get(k) is not None}},
     )
     settings = get_settings()
     agent = ROUTES.get(event.type)
