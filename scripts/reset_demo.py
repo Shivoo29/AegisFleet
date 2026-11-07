@@ -1,3 +1,6 @@
 #!/usr/bin/env python3
-"""Reset demo data (stub)."""
-print("reset_demo stub")
+"""Wipe demo data. Run from backend/: python -m scripts.reset_demo (needs PYTHONPATH=..)"""
+from app.demo import reset_db
+
+reset_db()
+print("demo data wiped")
