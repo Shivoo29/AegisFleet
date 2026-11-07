@@ -21,7 +21,7 @@ class Settings(BaseSettings):
     paypal_webhook_id: str = ""
     llm_provider: Literal["fake", "groq", "gemini", "mistral"] = "fake"
     llm_model: str = ""
-    llm_fallbacks: str = ""  # "gemini:gemini-2.5-flash,mistral:mistral-small-latest"
+    llm_fallbacks: str = ""  # "gemini:gemini-3.5-flash,mistral:mistral-small-latest"
     groq_api_key: str = ""
     gemini_api_key: str = ""
     mistral_api_key: str = ""
