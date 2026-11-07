@@ -19,12 +19,12 @@ class Settings(BaseSettings):
     paypal_client_id: str = ""
     paypal_client_secret: str = ""
     paypal_webhook_id: str = ""
-    llm_provider: Literal["fake", "groq", "gemini", "mistral"] = "fake"
+    llm_provider: Literal["fake", "groq", "gemini", "nvidia"] = "fake"
     llm_model: str = ""
-    llm_fallbacks: str = ""  # "gemini:gemini-3.5-flash,mistral:mistral-small-latest"
+    llm_fallbacks: str = ""  # "gemini:gemini-3.5-flash,nvidia:nvidia/nemotron-3.5-super-vl-120b-a12b"
     groq_api_key: str = ""
     gemini_api_key: str = ""
-    mistral_api_key: str = ""
+    nvidia_api_key: str = ""
     agents_enabled: list[str] = ["collector", "sentinel", "guardian", "defender"]
     approval_threshold_cents: int = 10000
     kill_switch: bool = False

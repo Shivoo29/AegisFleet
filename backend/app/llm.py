@@ -2,7 +2,7 @@
 
 Providers are tried in order: LLM_PROVIDER:LLM_MODEL first, then each entry of
 LLM_FALLBACKS. All real providers are reached through their OpenAI-compatible
-endpoints, so one client covers Groq, Gemini and Mistral.
+endpoints, so one client covers Groq, Gemini and NVIDIA NIM.
 """
 import json
 import logging
@@ -18,7 +18,7 @@ FIXTURES = REPO_ROOT / "fixtures" / "llm"
 BASE_URLS = {
     "groq": "https://api.groq.com/openai/v1",
     "gemini": "https://generativelanguage.googleapis.com/v1beta/openai/",
-    "mistral": "https://api.mistral.ai/v1",
+    "nvidia": "https://integrate.api.nvidia.com/v1",
 }
 
 log = logging.getLogger("aegis.llm")

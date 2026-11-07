@@ -29,9 +29,10 @@ def test_invalid_json_is_retried_once() -> None:
 def test_falls_back_to_next_provider(monkeypatch) -> None:
     from app.config import get_settings
     monkeypatch.setenv("LLM_PROVIDER", "groq")
-    monkeypatch.setenv("LLM_FALLBACKS", "gemini:g,mistral:m")
+    monkeypatch.setenv("LLM_FALLBACKS", "gemini:g,nvidia:m")
     monkeypatch.setenv("GROQ_API_KEY", "k")
-    monkeypatch.setenv("MISTRAL_API_KEY", "k")  # gemini has no key: skipped
+    monkeypatch.setenv("NVIDIA_API_KEY", "k")
+    monkeypatch.setenv("GEMINI_API_KEY", "")  # no key: skipped (env beats a real key in .env)
     get_settings.cache_clear()
     calls = []
 
@@ -44,7 +45,7 @@ def test_falls_back_to_next_provider(monkeypatch) -> None:
     monkeypatch.setattr(llm, "_call", fake_call)
     try:
         assert llm.complete("s", "u", SentinelVerdict).verdict == "scam"
-        assert calls == ["groq", "mistral"]
+        assert calls == ["groq", "nvidia"]
         monkeypatch.setattr(llm, "_call", lambda *a: (_ for _ in ()).throw(llm.LLMError("down")))
         with pytest.raises(llm.LLMError):
             llm.complete("s", "u", SentinelVerdict)
