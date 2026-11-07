@@ -32,11 +32,41 @@ CAPS = {("collector", "send_invoice_reminder"): 2}
 
 def needs_approval(agent: str, tool: str, args: dict) -> bool:
     """Return True when this call must be held for a human."""
-    return tool in ALWAYS_APPROVE
+    from app.config import get_settings
+    if tool in ALWAYS_APPROVE:
+        return True
+    amount = args.get("amount_cents")
+    if isinstance(amount, int) and amount >= get_settings().approval_threshold_cents:
+        return True
+    if tool == "send_dispute_message":  # first message on a dispute goes past a human
+        return not _done_before(agent, tool, args.get("dispute_id"))
+    # ponytail: "first reminder to a new client" rule skipped; add when Collector tracks clients.
+    return False
+
+
+def _done_before(agent: str, tool: str, subject_id) -> bool:
+    from app.db import conn
+    with conn() as c:
+        with c.cursor() as cur:
+            cur.execute(
+                "SELECT 1 FROM ledger WHERE kind='decision' AND subject_id=%s "
+                "AND payload->>'agent'=%s AND payload->>'tool'=%s AND payload->>'outcome'='allow' LIMIT 1",
+                (str(subject_id), agent, tool))
+            return cur.fetchone() is not None
 
 
 def validate(agent: str, tool: str, args: dict) -> str | None:
     """Return an error string if args are invalid, else None."""
+    amount = args.get("amount_cents")
+    if amount is not None and (not isinstance(amount, int) or isinstance(amount, bool) or amount <= 0):
+        return "amount_cents must be a positive integer"
+    if tool in ("get_invoice", "send_invoice_reminder") and not args.get("invoice_id"):
+        return "invoice_id required"
+    if tool in ALLOW["defender"] - {"list_disputes"} and not args.get("dispute_id"):
+        return "dispute_id required"
+    disputed = args.get("disputed_amount_cents")
+    if tool == "make_dispute_offer" and amount is not None and disputed is not None and amount > disputed:
+        return "offer exceeds disputed amount"
     return None
 
 

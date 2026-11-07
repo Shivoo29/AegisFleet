@@ -74,6 +74,23 @@ def approvals(status: str = "pending") -> list:
     return rows
 
 
+@router.post("/approvals/{approval_id}/{action}", dependencies=[Depends(_basic_auth)])
+def decide_approval(approval_id: str, action: str, body: dict | None = None,
+                    credentials: HTTPBasicCredentials = Depends(security)) -> dict:
+    from app.gateway import gateway
+    if action not in ("approve", "reject"):
+        raise HTTPException(404, "action must be approve or reject")
+    note = (body or {}).get("note", "")
+    try:
+        if action == "reject":
+            gateway.reject(approval_id, credentials.username, note)
+            return {"status": "rejected"}
+        d = gateway.approve(approval_id, credentials.username, note)
+    except KeyError:
+        raise HTTPException(409, "approval not found or already decided")
+    return {"status": "approved", "decision": d.model_dump()}
+
+
 @router.get("/runs", dependencies=[Depends(_basic_auth)])
 def runs(limit: int = 20) -> list:
     with conn() as c:
