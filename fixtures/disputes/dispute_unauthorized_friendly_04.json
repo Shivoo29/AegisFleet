@@ -20,6 +20,7 @@
         "currency": "USD",
         "invoice_id": "INV-1004",
         "transaction_id": "TXN-9004",
+        "paid_at": "2026-09-30",
         "buyer_email": "ethan.brooks@example.com"
       }
     },

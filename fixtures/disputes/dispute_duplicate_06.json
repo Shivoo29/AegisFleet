@@ -19,7 +19,8 @@
         "amount_cents": 9500,
         "currency": "USD",
         "invoice_id": "INV-1006",
-        "transaction_id": "TXN-9006"
+        "transaction_id": "TXN-9006",
+        "paid_at": "2026-10-01"
       }
     }
   ],
