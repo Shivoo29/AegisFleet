@@ -77,3 +77,13 @@ def test_record_payment_on_already_paid_invoice(monkeypatch) -> None:
         c.commit()
     r = TestClient(app).post("/api/demo/sandbox_record_payment", auth=AUTH)
     assert r.status_code == 200 and "already paid" in r.json()["message"]
+
+
+def test_health_counts_dispute_that_arrived_after_guardian() -> None:
+    """Seed ends with a dispute (routed to Defender); health and the Overview score must still see it."""
+    cl = TestClient(app)
+    cl.post("/api/demo/reset", auth=AUTH)
+    h = cl.get("/api/health", auth=AUTH).json()
+    disputes = next(f for f in h["factors"] if f["name"] == "open_disputes")
+    assert disputes["value"] == 1 and h["score"] < 100
+    assert cl.get("/api/summary", auth=AUTH).json()["health_score"] == h["score"]

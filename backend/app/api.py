@@ -107,7 +107,7 @@ def summary() -> dict:
         "pending_approvals": pending,
         "open_disputes": disputes,
         "overdue_invoices": overdue,
-        "health_score": 82,
+        "health_score": health()["score"],
         "kill_switch": kill_switch_active(),
         "chain_ok": v["ok"],
     }
@@ -291,25 +291,15 @@ def shipments(body: dict) -> dict:
 
 @router.get("/health", dependencies=[Depends(_basic_auth)])
 def health() -> dict:
+    """Score and factors are recomputed from the ledger on every call, so a dispute that
+    arrived after Guardian's last run still counts. Guardian's AI recommendations are
+    reused only while the factors they were written for still hold."""
+    from app.agents import guardian
+    metrics, flags, factors = guardian._metrics(ledger_find(limit=1000))
+    live = [f.model_dump() for f in factors]
     g = _rows("SELECT output FROM agent_runs WHERE agent='guardian' AND output ? 'score' "
               "ORDER BY started_at DESC LIMIT 1")
-    if g:
-        return g[0]["output"]
-    # ponytail: simple fallback until Guardian writes a HealthReport.
-    inv = invoices()
-    open_d = len(_latest_disputes())
-    overdue = sum(1 for i in inv if i["status"] == "overdue")
-    unshipped = sum(1 for i in inv if i["status"] == "paid" and not i["shipped"])
-    score = max(0, 100 - 15 * open_d - 10 * overdue - 10 * unshipped)
-    return {"score": score, "factors": [
-        {"name": "open_disputes", "value": open_d, "impact": "negative" if open_d else "positive",
-         "note": f"{open_d} open dispute(s)"},
-        {"name": "overdue_invoices", "value": overdue, "impact": "negative" if overdue else "positive",
-         "note": f"{overdue} invoice(s) overdue"},
-        {"name": "paid_not_shipped", "value": unshipped, "impact": "negative" if unshipped else "positive",
-         "note": f"{unshipped} paid order(s) without tracking"}],
-        "recommendations": [r for r, bad in (
-            ("Respond to open disputes with the sealed evidence pack", open_d),
-            ("Send reminders for overdue invoices", overdue),
-            ("Add tracking to paid orders", unshipped)) if bad],
-        "appeal_pack": None}
+    last = g[0]["output"] if g else {}
+    recs = last["recommendations"] if last.get("factors") == live else guardian._fallback_recommendations(flags)
+    return {"score": guardian._score(metrics, flags), "factors": live,
+            "recommendations": recs, "appeal_pack": last.get("appeal_pack")}
