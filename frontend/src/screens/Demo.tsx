@@ -101,7 +101,7 @@ export default function Demo() {
         <div>
           <h2 className="screen__title">Demo panel</h2>
           <p className="screen__subtitle">
-            One-click story beats for the video and judges. Safe on mocks; hits live demo routes when API is real.
+            One-click story beats for the video and judges. Start with Reset demo state.
           </p>
         </div>
         <span className={`badge ${available === false ? 'badge--amber' : 'badge--green'}`}>

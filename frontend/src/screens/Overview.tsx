@@ -3,6 +3,7 @@ import { usePoll } from '../usePoll'
 import type { Summary, Run } from '../types'
 import { money, relativeTime, agentLabel } from '../format'
 import { StateBlock } from '../components/StateBlock'
+import { ChainStrip } from '../components/ChainStrip'
 
 export default function Overview() {
   const { data: summary, error: sErr, loading: sLoad } = usePoll<Summary>(() => get('/api/summary'))
@@ -49,6 +50,8 @@ export default function Overview() {
             />
           </div>
         )}
+
+        <ChainStrip />
 
         <h3 className="section-title">Recent agent activity</h3>
         {!runs?.length && !loading && (
