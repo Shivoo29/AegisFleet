@@ -1,0 +1,79 @@
+# Devpost submission text
+
+Paste each section into the matching Devpost field.
+
+---
+
+## Project name
+AegisFleet
+
+## Tagline
+AI agents that help small sellers get paid and stay paid, while only rules or a human ever move money.
+
+## Inspiration
+Solo sellers on PayPal lose money in three quiet ways: fake "payment received" emails that trick them into shipping, "item not received" disputes they can't answer in time, and unpaid invoices nobody chases. AI can do this paperwork. But nobody should let a language model click "refund" on their behalf. We wanted agents that are useful *and* safe to hand money-adjacent work to.
+
+## What it does
+AegisFleet watches a seller's PayPal activity and runs AI agents behind a guardrail gateway:
+
+- **Sentinel** reads suspicious "you got paid" emails and checks them against *verified* PayPal payments in the ledger. Lookalike domains, urgency, off-platform requests and amount mismatches are flagged, and the seller gets a plain-words verdict.
+- **Defender** answers buyer disputes. It gathers the sealed payment, tracking and delivery records, classifies the claim, drafts the evidence, and recommends provide evidence, offer a refund, or accept. Every fact cites a ledger entry.
+- **The gateway** sits between every agent and PayPal. It checks the kill switch, a per-agent allowlist, argument validation and weekly caps, then **holds** anything that touches money until a human approves it in the console. An agent tricked into a refund is denied, and the attempt is recorded.
+- **The Proof Ledger** hash-chains every event, decision and approval. Editing any past record breaks verification at that exact entry.
+
+The console (React + AG Grid) shows money at risk, approvals, the ledger, agent activity, disputes and invoices, with a one-click demo panel.
+
+## How we built it
+- **PayPal (sandbox):** Invoicing v2 (create, send, record payment), Webhooks (registration and `verify-webhook-signature` on every event), Disputes (get, message, provide evidence, make offer, accept claim), Shipment Tracking, Transaction Search and Payments refunds. The client does OAuth with token caching and a `PayPal-Request-Id` on every write, so retries never double-act.
+- **AI:** one OpenAI-compatible wrapper with a fallback chain (Groq → Gemini → NVIDIA NIM). Agents ask for JSON matching a Pydantic schema, invalid output is retried once with the error, and anything still invalid falls back to deterministic rules. Untrusted text such as emails and buyer messages is fenced in prompts and never followed as instructions.
+- **Backend:** FastAPI, PostgreSQL (append-only ledger with advisory-lock sealing), signed session login.
+- **Frontend:** React, Vite, TypeScript, AG Grid.
+- **Evals:** labelled suites run against the real model: Sentinel 20/20 emails (0 scams missed, 0 false alarms); Defender 8/8 disputes (0 uncited facts).
+- **Hosting:** self-hosted behind a Cloudflare Tunnel, with a Render blueprint included.
+
+## Challenges we ran into
+- Making AI useful without trusting it. We settled on a rule: AI drafts, classifies and recommends, and only deterministic rules or a human approval execute a PayPal call.
+- Free-tier rate limits during evals, solved with a provider fallback chain.
+- Sandbox checkout failing for an India-region buyer account. A US sandbox buyer works, and we kept a "record payment" path that fires the same signed webhook.
+
+## Accomplishments that we're proud of
+- A real sandbox invoice, paid through PayPal checkout, arrives as a signature-verified webhook and is sealed into a tamper-evident ledger within about a minute.
+- Prompt-injected refund attempts are denied by design, not by prompt wording.
+- Every claim an agent makes about money points at a specific ledger entry.
+
+## What we learned
+Guardrails belong outside the model. A small gateway with allowlists, caps and human approval made the agents far easier to trust than any prompt instruction could.
+
+## What's next
+- **Guardian:** shipment tracking and seller-health scoring. *(Edit this line if Guardian is merged before submission.)*
+- **Collector:** polite, capped invoice reminders.
+- Move from sandbox to production behind the same gateway, with per-seller limits.
+
+---
+
+## Built with
+python, fastapi, postgresql, react, typescript, vite, ag-grid, paypal-invoicing, paypal-webhooks, paypal-disputes, paypal-shipment-tracking, groq, gemini, nvidia-nim, cloudflare
+
+## Tools used (AI)
+| Tool | Model | How we use it |
+|---|---|---|
+| Groq | `openai/gpt-oss-120b` | Primary model for Sentinel (scam verdict) and Defender (dispute classification and evidence notes). JSON output validated against Pydantic schemas. |
+| Google Gemini API | `gemini-3.5-flash` | First fallback when Groq is rate-limited or errors. |
+| NVIDIA NIM | `nemotron-3.5-super-vl-120b-a12b` | Second fallback. |
+| AG Grid Community | – | Proof Ledger table, filtering, and highlighting the broken row after tampering. |
+
+The models never call PayPal. They return structured recommendations; the gateway decides what runs.
+
+## Links
+- Live demo: https://aegisfleet.solvor.co.in
+- Code: https://github.com/Shivoo29/AegisFleet (MIT)
+- Video: `<YouTube link>`
+
+## Testing instructions (judges only)
+> Open https://aegisfleet.solvor.co.in and log in with username `judge`, password `<JUDGE_PASSWORD>`.
+> 1. A short guide points at each step. Start with **Demo → Reset** to load the scenario.
+> 2. **Real PayPal invoice** issues a real sandbox invoice. To pay it, use the sandbox buyer `<US sandbox buyer email>` / `<password>`, or click **Record payment (backup)**. The invoice turns *paid* within about a minute.
+> 3. Try **Fake payment email**, **Replay injection** and **Tamper**, then check Activity, Approvals and Ledger.
+> 4. Reset any time. Nothing real is connected: PayPal runs in sandbox, and live mode is refused in code.
+>
+> To run locally with no keys: see `SETUP.md` (fake PayPal and fake AI modes).
