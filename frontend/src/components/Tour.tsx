@@ -89,7 +89,7 @@ export default function Tour() {
   const vw = Math.min(window.visualViewport?.width ?? Infinity, document.documentElement.clientWidth)
   const vh = document.documentElement.clientHeight
   const W = Math.min(300, vw - 24)
-  const below = rect.bottom + 180 < vh
+  const below = rect.bottom + 180 < vh || rect.top < 200
   const left = Math.max(12, Math.min(rect.left + rect.width / 2 - W / 2, vw - W - 12))
   const arrowX = Math.max(16, Math.min(rect.left + rect.width / 2 - left, W - 16))
 

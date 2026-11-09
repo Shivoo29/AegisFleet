@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
-import { USE_MOCKS } from './api'
+import { USE_MOCKS, get } from './api'
+import { usePoll } from './usePoll'
 import Login, { type Me } from './screens/Login'
 import Tour from './components/Tour'
 import './theme.css'
@@ -96,8 +97,7 @@ export default function App() {
         </nav>
 
         <div className="header__controls">
-          <span className="badge badge--green badge--dot">Chain OK</span>
-          <span className="badge badge--amber badge--dot">2 pending</span>
+          <HeaderStatus onOpen={setActive} />
           <span className="badge">{me.role === 'judge' ? 'Judge' : me.user}</span>
           <button type="button" className="btn btn--ghost btn--sm" onClick={logout}>
             Log out
@@ -119,5 +119,28 @@ export default function App() {
         {active === 'Demo' && <Demo />}
       </main>
     </div>
+  )
+}
+
+type HeaderSummary = { chain_ok: boolean; pending_approvals: number; kill_switch: boolean }
+
+/** Live header badges from /api/summary: chain integrity, kill switch, pending approvals. */
+function HeaderStatus({ onOpen }: { onOpen: (t: Tab) => void }) {
+  const { data, error } = usePoll(() => get<HeaderSummary>('/api/summary'))
+  if (error && !data) return <span className="badge badge--amber badge--dot">Status unavailable</span>
+  if (!data) return null
+  const pending = data.pending_approvals
+  return (
+    <>
+      <button type="button" className={`badge badge--dot badge--button ${data.chain_ok ? 'badge--green' : 'badge--red'}`}
+        onClick={() => onOpen('Ledger')} title="Open the Proof Ledger">
+        {data.chain_ok ? 'Chain intact' : 'Chain broken'}
+      </button>
+      {data.kill_switch && <span className="badge badge--red badge--dot">Kill switch on</span>}
+      <button type="button" className={`badge badge--dot badge--button ${pending ? 'badge--amber' : 'badge--green'}`}
+        onClick={() => onOpen('Approvals')} title="Open Approvals">
+        {pending ? `${pending} awaiting approval` : 'No approvals waiting'}
+      </button>
+    </>
   )
 }
