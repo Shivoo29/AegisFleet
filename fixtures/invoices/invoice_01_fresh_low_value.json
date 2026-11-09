@@ -1,0 +1,31 @@
+{
+  "type": "invoice.overdue",
+  "subject_id": "INV-4001",
+  "invoice": {
+    "invoice_id": "INV-4001",
+    "buyer_email": "maya.reed@example.com",
+    "amount_cents": 4200,
+    "currency": "USD",
+    "due_date": "2026-11-07",
+    "days_overdue": 2
+  },
+  "average_invoice_cents": 5000,
+  "client_history": {"total_invoices": 3, "late_invoices": 0},
+  "reminders_sent": 0,
+  "ledger_seed": [
+    {
+      "kind": "event",
+      "payload": {
+        "type": "invoice.sent",
+        "verified": true,
+        "invoice_id": "INV-4001",
+        "amount_cents": 4200,
+        "currency": "USD",
+        "due_date": "2026-11-07"
+      }
+    }
+  ],
+  "expected_risk": "low",
+  "expected_tone": "friendly",
+  "expected_action": "remind"
+}

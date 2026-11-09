@@ -1,0 +1,49 @@
+{
+  "type": "invoice.overdue",
+  "subject_id": "INV-4008",
+  "invoice": {
+    "invoice_id": "INV-4008",
+    "buyer_email": "priya.nair@example.com",
+    "amount_cents": 50000,
+    "currency": "USD",
+    "due_date": "2026-10-22",
+    "days_overdue": 18
+  },
+  "average_invoice_cents": 45000,
+  "client_history": {"total_invoices": 6, "late_invoices": 2},
+  "reminders_sent": 2,
+  "ledger_seed": [
+    {
+      "kind": "event",
+      "payload": {
+        "type": "invoice.sent",
+        "verified": true,
+        "invoice_id": "INV-4008",
+        "amount_cents": 50000,
+        "currency": "USD",
+        "due_date": "2026-10-22"
+      }
+    },
+    {
+      "kind": "decision",
+      "payload": {
+        "agent": "collector",
+        "tool": "send_invoice_reminder",
+        "outcome": "allow",
+        "args": {"invoice_id": "INV-4008"}
+      }
+    },
+    {
+      "kind": "decision",
+      "payload": {
+        "agent": "collector",
+        "tool": "send_invoice_reminder",
+        "outcome": "allow",
+        "args": {"invoice_id": "INV-4008"}
+      }
+    }
+  ],
+  "expected_risk": "high",
+  "expected_tone": "final",
+  "expected_action": "escalate"
+}
