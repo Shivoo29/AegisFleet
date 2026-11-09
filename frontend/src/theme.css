@@ -759,3 +759,65 @@ body {
 }
 .login__submit { width: 100%; justify-content: center; padding-block: 0.65rem; }
 .login__hint { margin: 0; font-size: var(--text-xs); color: var(--muted); text-align: center; }
+
+/* First-visit guide: never intercepts clicks except on its own card */
+.tour { position: fixed; inset: 0; z-index: 1000; pointer-events: none; }
+.tour__ring {
+  position: fixed;
+  border: 2px solid var(--accent);
+  border-radius: var(--radius);
+  box-shadow: 0 0 0 4px var(--accent-weak);
+  animation: tour-pulse 1.8s ease-in-out infinite;
+}
+@keyframes tour-pulse {
+  0%, 100% { box-shadow: 0 0 0 4px var(--accent-weak); }
+  50% { box-shadow: 0 0 0 9px rgba(15, 98, 89, 0.12); }
+}
+.tour__card {
+  position: fixed;
+  pointer-events: auto;
+  padding: 0.9rem 1rem 0.8rem;
+  background: var(--card);
+  border: 1px solid var(--accent-muted);
+  border-left: 3px solid var(--accent);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-md);
+  color: var(--text);
+}
+.tour__card::before {
+  content: "";
+  position: absolute;
+  left: calc(var(--arrow-x) - 6px);
+  width: 10px;
+  height: 10px;
+  background: var(--card);
+  border: 1px solid var(--accent-muted);
+  transform: rotate(45deg);
+}
+.tour__card--below::before { top: -6px; border-right: 0; border-bottom: 0; }
+.tour__card--above::before { bottom: -6px; border-left: 0; border-top: 0; }
+.tour__count { margin: 0 0 0.2rem; font-size: var(--text-xs); color: var(--accent); font-weight: 600; }
+.tour__title { margin: 0 0 0.3rem; font-size: var(--text-base); font-weight: 600; }
+.tour__body { margin: 0; font-size: var(--text-sm); line-height: 1.5; color: var(--text-secondary); }
+.tour__actions { display: flex; justify-content: space-between; align-items: center; margin-top: 0.7rem; gap: 0.5rem; }
+.tour__hint { font-size: var(--text-xs); color: var(--muted); }
+.tour__link {
+  padding: 0; border: 0; background: none; cursor: pointer;
+  font: inherit; font-size: var(--text-xs); color: var(--muted); text-decoration: underline;
+}
+.tour__link:hover { color: var(--text); }
+.tour-resume {
+  position: fixed; right: 16px; bottom: 16px; z-index: 1000;
+  display: flex; align-items: center;
+  background: var(--card); border: 1px solid var(--accent-muted);
+  border-radius: var(--radius-full); box-shadow: var(--shadow-md);
+}
+.tour-resume__btn, .tour-resume__close {
+  border: 0; background: none; cursor: pointer; font: inherit; color: var(--accent);
+}
+.tour-resume__btn { padding: 0.45rem 0.4rem 0.45rem 0.9rem; font-size: var(--text-sm); font-weight: 600; }
+.tour-resume__close { padding: 0.45rem 0.8rem 0.45rem 0.4rem; font-size: var(--text-lg); line-height: 1; color: var(--muted); }
+.tour-resume__btn:focus-visible, .tour-resume__close:focus-visible, .tour__link:focus-visible {
+  outline: 2px solid var(--accent); outline-offset: 2px; border-radius: var(--radius-sm);
+}
+@media (prefers-reduced-motion: reduce) { .tour__ring { animation: none; } }

@@ -108,6 +108,7 @@ export default function Demo() {
                 <button
                   type="button"
                   className="btn btn--secondary btn--sm"
+                  data-tour={`beat-${beat.id}`}
                   disabled={busyId === beat.id}
                   onClick={() => run(beat)}
                 >

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { USE_MOCKS } from './api'
 import Login, { type Me } from './screens/Login'
+import Tour from './components/Tour'
 import './theme.css'
 import Ledger from './screens/Ledger'
 import Approvals from './screens/Approvals'
@@ -84,6 +85,7 @@ export default function App() {
             <button
               key={t}
               type="button"
+              data-tour={`tab-${t}`}
               className={active === t ? 'active' : ''}
               aria-current={active === t ? 'page' : undefined}
               onClick={() => setActive(t)}
@@ -102,6 +104,8 @@ export default function App() {
           </button>
         </div>
       </header>
+
+      <Tour />
 
       <main className="main">
         {active === 'Overview' && <Overview />}
