@@ -190,9 +190,19 @@ def sandbox_record_payment() -> dict:
             row = cur.fetchone()
     if row is None:
         raise HTTPException(409, "No unpaid PayPal invoice. Click 'Real PayPal invoice' first.")
+    import httpx
     from app.paypal.client import get_client
-    get_client().record_invoice_payment({"invoice_id": row["data"]["paypal_invoice_id"], "amount_cents": 60000,
-                                         "currency": "USD", "note": "Paid by bank transfer"})
+    c, pp_id = get_client(), row["data"]["paypal_invoice_id"]
+    try:
+        if c.get_invoice({"invoice_id": pp_id}).get("status") in ("PAID", "MARKED_AS_PAID"):
+            # Buyer already paid through checkout; the webhook may still be on its way.
+            return {"ok": True, "invoice_id": row["id"],
+                    "message": f"{row['id']} is already paid in PayPal. Its signed webhook marks it paid here "
+                               "within a minute; check Invoices."}
+        c.record_invoice_payment({"invoice_id": pp_id, "amount_cents": 60000,
+                                  "currency": "USD", "note": "Paid by bank transfer"})
+    except httpx.HTTPStatusError as e:
+        raise HTTPException(502, f"PayPal refused: {e.response.status_code}. Try 'Real PayPal invoice' again.")
     return {"ok": True, "invoice_id": row["id"],
             "message": f"Payment recorded on {row['id']} in PayPal. PayPal's signed webhook marks it paid here "
                        "within a minute; check Invoices."}

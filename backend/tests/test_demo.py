@@ -53,3 +53,27 @@ def test_reset_seeds_story_for_every_screen() -> None:
     assert cl.post("/api/shipments", auth=AUTH, json={"invoice_id": "INV-0005", "tracking_number": "T1"}).json()["sealed"]
     assert {i["id"]: i for i in cl.get("/api/invoices", auth=AUTH).json()}["INV-0005"]["shipped"]
     assert 0 <= cl.get("/api/health", auth=AUTH).json()["score"] <= 100
+
+
+def test_record_payment_on_already_paid_invoice(monkeypatch) -> None:
+    """Buyer paid via checkout before the backup button was clicked: no 500, no second payment."""
+    import json
+
+    from app.db import conn
+    from app.config import get_settings
+
+    class Paid:
+        def get_invoice(self, args):
+            return {"status": "PAID"}
+
+        def record_invoice_payment(self, args):
+            raise AssertionError("must not record a second payment")
+
+    monkeypatch.setattr(get_settings(), "paypal_mode", "sandbox")
+    monkeypatch.setattr("app.paypal.client.get_client", lambda: Paid())
+    with conn() as c:
+        c.execute("INSERT INTO invoices (id, data) VALUES (%s,%s)",
+                  ("AF-TEST", json.dumps({"paypal_invoice_id": "INV2-TEST"})))
+        c.commit()
+    r = TestClient(app).post("/api/demo/sandbox_record_payment", auth=AUTH)
+    assert r.status_code == 200 and "already paid" in r.json()["message"]

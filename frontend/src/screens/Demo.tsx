@@ -36,13 +36,13 @@ const BEATS: Beat[] = [
   {
     id: 'replay_injection',
     title: 'Replay injection attempt',
-    description: 'Try to trick an agent into a money move. Gateway should hold; seller stays in control.',
+    description: 'An email tries to trick Sentinel into a refund. The gateway denies it and seals the attempt.',
     path: '/api/demo/replay_injection',
   },
   {
     id: 'tamper',
     title: 'Tamper with ledger',
-    description: 'Break a hash in the Proof Ledger. Verify chain should report broken_at.',
+    description: 'Edit a sealed record behind the chain\'s back. The header and Ledger point at the exact record.',
     path: '/api/demo/tamper',
   },
   {

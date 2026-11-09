@@ -35,6 +35,16 @@ function loadMock<T>(name: string): T {
   return (Array.isArray(data) ? [...data] : { ...data }) as T
 }
 
+/** FastAPI errors are {"detail": "..."}; show the sentence, not the JSON. */
+async function errorText(res: Response): Promise<string> {
+  const text = await res.text()
+  try {
+    const d = JSON.parse(text).detail
+    if (typeof d === 'string') return d
+  } catch { /* not JSON */ }
+  return text || res.statusText
+}
+
 export async function get<T>(path: string): Promise<T> {
   if (USE_MOCKS) {
     if (path.startsWith('/api/summary')) return loadMock<T>('summary')
@@ -51,7 +61,7 @@ export async function get<T>(path: string): Promise<T> {
   }
   const res = await fetch(`${BASE}${path}`, { credentials: 'include' })
   if (res.status === 401) window.dispatchEvent(new Event('aegis:unauthorized'))
-  if (!res.ok) throw new Error(await res.text())
+  if (!res.ok) throw new Error(await errorText(res))
   return res.json()
 }
 
@@ -79,6 +89,6 @@ export async function post<T>(path: string, body: unknown): Promise<T> {
     body: JSON.stringify(body),
   })
   if (res.status === 401) window.dispatchEvent(new Event('aegis:unauthorized'))
-  if (!res.ok) throw new Error(await res.text())
+  if (!res.ok) throw new Error(await errorText(res))
   return res.json()
 }
