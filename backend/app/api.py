@@ -3,7 +3,7 @@ import secrets
 from datetime import datetime, timezone
 from uuid import uuid4
 
-from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 
 from app.config import get_settings
@@ -124,7 +124,8 @@ def post_killswitch(body: dict) -> dict:
 
 
 @router.post("/inbox", dependencies=[Depends(_basic_auth)])
-def inbox(body: dict, background_tasks: BackgroundTasks) -> dict:
+def inbox(body: dict) -> dict:
+    """Run Sentinel inline (a few seconds) so the console gets the verdict in one call."""
     from app.events import route, store_event
     from app.models import Event
     ev = Event(
@@ -137,8 +138,8 @@ def inbox(body: dict, background_tasks: BackgroundTasks) -> dict:
         received_at=datetime.now(timezone.utc),
     )
     store_event(ev)
-    background_tasks.add_task(route, ev)
-    return {"run_id": ev.id}
+    run = route(ev) or {}
+    return {"run_id": run.get("run_id"), "status": run.get("status"), "verdict": run.get("output")}
 
 
 # TODO(SKJ): real data for the screens below.

@@ -30,3 +30,10 @@ def test_scam_email_runs_sentinel() -> None:
     cl = TestClient(app)
     assert cl.post("/api/demo/scam_email", auth=AUTH).json()["ok"]
     assert cl.get("/api/runs", auth=AUTH).json()[0]["agent"] == "sentinel"
+
+
+def test_inbox_returns_verdict() -> None:
+    r = TestClient(app).post("/api/inbox", auth=AUTH, json={
+        "from": "service@paypa1-support.com", "subject": "Payment received",
+        "body": "You have received $600.00 for INV-0007.", "invoice_id": "INV-0007"}).json()
+    assert r["run_id"] and r["verdict"]["verdict"] == "scam"

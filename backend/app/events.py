@@ -27,8 +27,11 @@ def store_event(event: Event) -> bool:
     return inserted
 
 
-def route(event: Event) -> None:
-    """Seal the event, then run the routed agent (best-effort, never crash)."""
+def route(event: Event) -> dict | None:
+    """Seal the event, then run the routed agent (best-effort, never crash).
+
+    Returns {"run_id", "status", "output"} when an agent ran, else None.
+    """
     seal(
         kind="event",
         subject_id=event.subject_id,
@@ -40,7 +43,7 @@ def route(event: Event) -> None:
     settings = get_settings()
     agent = ROUTES.get(event.type)
     if not agent or agent not in settings.agents_enabled:
-        return
+        return None
     run_id = str(uuid.uuid4())
     started_at = datetime.now(timezone.utc)
     output = None
@@ -69,3 +72,4 @@ def route(event: Event) -> None:
                 ),
             )
         c.commit()
+    return {"run_id": run_id, "status": status, "output": output}
