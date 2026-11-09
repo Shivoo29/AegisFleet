@@ -12,21 +12,21 @@ React 18 + Vite + TypeScript + AG Grid Community.
 | Disputes + evidence pack | Done (mock) |
 | Overview / Inbox / Invoices / Health / Demo | Placeholders (next days) |
 
-## Run (mocks — default)
+## Run
 
 ```bash
 npm install
-npm run dev
+VITE_USE_MOCKS=true npm run dev
 ```
 
 Open http://localhost:5173
 
-Mocks load automatically (`VITE_USE_MOCKS` defaults to true).
+Mocks are opt-in with `VITE_USE_MOCKS=true`.
 
 ## Thursday: switch to real API
 
 1. Backend must be running (local `:8000` or Render URL).
-2. Create `frontend/.env`:
+2. Set `VITE_USE_MOCKS=false` in `frontend/.env`:
 
 ```bash
 VITE_USE_MOCKS=false

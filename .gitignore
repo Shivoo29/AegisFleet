@@ -16,4 +16,6 @@ htmlcov/
 *.log
 .DS_Store
 node_modules/
-.env.local
+frontend/node_modules/
+.env
+*.log

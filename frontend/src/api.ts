@@ -1,4 +1,4 @@
-/** API client. Default mocks until VITE_USE_MOCKS=false. */
+/** API client. Mocks are enabled only with VITE_USE_MOCKS=true. */
 
 import {
   summaryMock,
@@ -13,7 +13,7 @@ import {
   inboxScamVerdict,
 } from './mocks/data'
 
-export const USE_MOCKS = import.meta.env.VITE_USE_MOCKS !== 'false'
+export const USE_MOCKS = import.meta.env.VITE_USE_MOCKS === 'true'
 
 const BASE = import.meta.env.VITE_API_BASE || ''
 
