@@ -10,6 +10,11 @@ from app.ledger import seal
 from app.models import Event
 
 
+# Event data fields copied into the sealed ledger entry so agents can cite them.
+FACT_KEYS = ("amount_cents", "currency", "invoice_id", "paid_at", "tracking_number", "carrier",
+             "shipped_at", "address_match", "status")
+
+
 def store_event(event: Event) -> bool:
     """Insert once. False if this event (or PayPal event id) was already stored."""
     with conn() as c:
@@ -38,7 +43,7 @@ def route(event: Event) -> dict | None:
         summary=f"{event.type} from {event.source}",
         payload={"event_id": event.id, "type": event.type, "source": event.source, "verified": event.verified,
                  # money facts agents match against (Sentinel: amount check)
-                 **{k: event.data[k] for k in ("amount_cents", "currency", "invoice_id") if event.data.get(k) is not None}},
+                 **{k: event.data[k] for k in FACT_KEYS if event.data.get(k) is not None}},
     )
     settings = get_settings()
     agent = ROUTES.get(event.type)

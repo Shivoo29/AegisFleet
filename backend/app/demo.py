@@ -1,6 +1,6 @@
 """Demo endpoints (M8). Only active when DEMO_MODE=true, and behind the console password."""
 import json
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from uuid import uuid4
 
@@ -85,7 +85,51 @@ def reset_db() -> None:
         c.commit()
 
 
+def _event(type_: str, source: str, data: dict, when: datetime) -> None:
+    ev = Event(id=f"seed_{uuid4().hex[:8]}", type=type_, source=source, subject_id=data["subject_id"],
+               data=data, verified=True, received_at=when)
+    store_event(ev)
+    route(ev)
+
+
+def seed() -> None:
+    """Riya's jewellery shop: INV-0007 paid, shipped, delivered, then an 'item not received' dispute."""
+    now = datetime.now(timezone.utc)
+    day = lambda n: (now - timedelta(days=n)).isoformat()  # noqa: E731
+    invoices = [
+        ("INV-0007", {"buyer_email": "alex.m@example.com", "amount_cents": 60000, "currency": "USD",
+                      "created_at": day(6), "due_date": day(-8)}),
+        ("INV-0006", {"buyer_email": "sam.k@example.com", "amount_cents": 18500, "currency": "USD",
+                      "created_at": day(20), "due_date": day(5)}),
+        ("INV-0005", {"buyer_email": "priya.r@example.com", "amount_cents": 42000, "currency": "USD",
+                      "created_at": day(2), "due_date": day(-12)}),
+    ]
+    with conn() as c:
+        for inv, data in invoices:
+            c.execute("INSERT INTO invoices (id, data) VALUES (%s,%s)", (inv, json.dumps(data)))
+        c.execute("INSERT INTO shipments (id, data) VALUES (%s,%s)", (DEMO_INVOICE, json.dumps(
+            {"invoice_id": DEMO_INVOICE, "tracking_number": "1Z999AA10123456784", "carrier": "UPS",
+             "shipped_at": day(4)})))
+        c.commit()
+    base = {"subject_id": DEMO_INVOICE, "invoice_id": DEMO_INVOICE}
+    _event("payment.captured", "paypal", {**base, "amount_cents": 60000, "currency": "USD", "paid_at": day(5)},
+           now - timedelta(days=5))
+    _event("shipment.created", "console", {**base, "tracking_number": "1Z999AA10123456784", "carrier": "UPS",
+                                           "shipped_at": day(4)}, now - timedelta(days=4))
+    _event("delivery.confirmed", "courier", {**base, "status": "DELIVERED", "address_match": True},
+           now - timedelta(days=2))
+    _event("dispute.created", "paypal", {
+        "subject_id": "PP-D-12345", "invoice_id": DEMO_INVOICE, "amount_cents": 60000, "currency": "USD",
+        "resource": {"dispute_id": "PP-D-12345", "reason": "MERCHANDISE_OR_SERVICE_NOT_RECEIVED",
+                     "status": "WAITING_FOR_SELLER_RESPONSE", "seller_response_due_date": day(-7),
+                     "dispute_amount": {"value": "600.00", "currency_code": "USD"},
+                     "disputed_transactions": [{"invoice_number": DEMO_INVOICE, "buyer": {"name": "Alex M."}}]}},
+        now - timedelta(hours=3))
+
+
 @router.post("/reset")
 def reset() -> dict:
+    """Wipe everything, then replay Riya's story so the console never starts empty."""
     reset_db()
+    seed()
     return {"ok": True}

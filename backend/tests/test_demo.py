@@ -23,7 +23,7 @@ def test_tamper_then_reset() -> None:
     r = cl.post("/api/demo/tamper", auth=AUTH).json()
     assert r["verify"]["ok"] is False and r["verify"]["broken_at"] == r["tampered_id"]
     cl.post("/api/demo/reset", auth=AUTH)
-    assert find() == []
+    assert cl.get("/api/ledger/verify", auth=AUTH).json()["ok"]
 
 
 def test_scam_email_runs_sentinel() -> None:
@@ -37,3 +37,19 @@ def test_inbox_returns_verdict() -> None:
         "from": "service@paypa1-support.com", "subject": "Payment received",
         "body": "You have received $600.00 for INV-0007.", "invoice_id": "INV-0007"}).json()
     assert r["run_id"] and r["verdict"]["verdict"] == "scam"
+
+
+def test_reset_seeds_story_for_every_screen() -> None:
+    cl = TestClient(app)
+    cl.post("/api/demo/reset", auth=AUTH)
+    [d] = cl.get("/api/disputes", auth=AUTH).json()
+    assert (d["id"], d["amount_cents"], d["buyer_name"]) == ("PP-D-12345", 60000, "Alex M.")
+    detail = cl.get("/api/disputes/PP-D-12345", auth=AUTH).json()
+    assert detail["evidence_pack"]["recommended_action"] == "provide_evidence"
+    assert detail["approval_id"]
+    inv = {i["id"]: i for i in cl.get("/api/invoices", auth=AUTH).json()}
+    assert inv["INV-0007"]["status"] == "paid" and inv["INV-0007"]["shipped"]
+    assert inv["INV-0006"]["status"] == "overdue" and inv["INV-0006"]["days_overdue"] == 5
+    assert cl.post("/api/shipments", auth=AUTH, json={"invoice_id": "INV-0005", "tracking_number": "T1"}).json()["sealed"]
+    assert {i["id"]: i for i in cl.get("/api/invoices", auth=AUTH).json()}["INV-0005"]["shipped"]
+    assert 0 <= cl.get("/api/health", auth=AUTH).json()["score"] <= 100

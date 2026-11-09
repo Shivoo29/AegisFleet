@@ -1,4 +1,5 @@
 """Console API (M8). HTTP Basic behind /api/*."""
+import json
 import secrets
 from datetime import datetime, timezone
 from uuid import uuid4
@@ -142,27 +143,113 @@ def inbox(body: dict) -> dict:
     return {"run_id": run.get("run_id"), "status": run.get("status"), "verdict": run.get("output")}
 
 
-# TODO(SKJ): real data for the screens below.
+def _rows(sql: str, args: tuple = ()) -> list:
+    with conn() as c:
+        with c.cursor() as cur:
+            cur.execute(sql, args)
+            return cur.fetchall()
+
+
+def _dispute_row(e: dict) -> dict:
+    d, r = e["data"], e["data"].get("resource") or {}
+    buyer = ((r.get("disputed_transactions") or [{}])[0].get("buyer") or {}).get("name")
+    return {"id": e["subject_id"], "invoice_id": d.get("invoice_id"), "reason": r.get("reason", "UNKNOWN"),
+            "status": r.get("status", "OPEN"), "amount_cents": d.get("amount_cents"),
+            "currency": d.get("currency"), "buyer_name": buyer, "created_at": e["received_at"],
+            "due_by": r.get("seller_response_due_date")}
+
+
+def _latest_disputes() -> list:
+    rows = _rows("SELECT DISTINCT ON (subject_id) subject_id, data, received_at FROM events "
+                 "WHERE type LIKE 'dispute.%%' AND NOT rejected ORDER BY subject_id, received_at DESC")
+    return sorted((_dispute_row(e) for e in rows), key=lambda d: d["created_at"], reverse=True)
+
+
 @router.get("/disputes", dependencies=[Depends(_basic_auth)])
 def disputes() -> list:
-    return []
+    return _latest_disputes()
 
 
 @router.get("/disputes/{dispute_id}", dependencies=[Depends(_basic_auth)])
 def dispute_detail(dispute_id: str) -> dict:
-    return {"dispute": {}, "evidence_pack": None, "approval_id": None}
+    found = [d for d in _latest_disputes() if d["id"] == dispute_id]
+    if not found:
+        raise HTTPException(404, "dispute not found")
+    pack = _rows("SELECT output FROM agent_runs WHERE agent='defender' AND output->>'dispute_id'=%s "
+                 "ORDER BY started_at DESC LIMIT 1", (dispute_id,))
+    apr = _rows("SELECT id FROM approvals WHERE status='pending' AND args->>'dispute_id'=%s "
+                "ORDER BY created_at DESC LIMIT 1", (dispute_id,))
+    return {"dispute": found[0], "evidence_pack": pack[0]["output"] if pack else None,
+            "approval_id": apr[0]["id"] if apr else None}
 
 
 @router.get("/invoices", dependencies=[Depends(_basic_auth)])
 def invoices() -> list:
-    return []
+    paid = {r["subject_id"]: r["created_at"] for r in _rows(
+        "SELECT subject_id, min(created_at) AS created_at FROM ledger WHERE kind='event' "
+        "AND payload->>'verified'='true' AND payload->>'type' IN ('payment.captured','invoice.paid') "
+        "GROUP BY subject_id")}
+    ships = {r["id"]: r["data"] for r in _rows("SELECT id, data FROM shipments")}
+    today = datetime.now(timezone.utc).date()
+    out = []
+    for row in _rows("SELECT id, data FROM invoices ORDER BY id DESC"):
+        d, inv = row["data"], row["id"]
+        due = d.get("due_date")
+        late = 0 if inv in paid or not due else max(0, (today - datetime.fromisoformat(due).date()).days)
+        # ponytail: rule-of-thumb risk; Collector's plan replaces this when it ships.
+        risk = "low" if inv in paid else "high" if late > 14 else "medium" if late else "low"
+        out.append({"id": inv, "buyer_email": d.get("buyer_email"), "amount_cents": d.get("amount_cents"),
+                    "currency": d.get("currency", "USD"),
+                    "status": "paid" if inv in paid else "overdue" if late else "sent",
+                    "days_overdue": late, "risk": risk, "shipped": inv in ships,
+                    "tracking_number": (ships.get(inv) or {}).get("tracking_number"),
+                    "created_at": d.get("created_at"), "paid_at": paid.get(inv)})
+    return out
 
 
 @router.post("/shipments", dependencies=[Depends(_basic_auth)])
 def shipments(body: dict) -> dict:
-    return {}
+    """Seller adds tracking: store it, then fire shipment.created (sealed + routed to Guardian)."""
+    from app.events import route, store_event
+    from app.models import Event
+    inv, tn = body.get("invoice_id"), body.get("tracking_number")
+    if not inv or not tn:
+        raise HTTPException(422, "invoice_id and tracking_number required")
+    now = datetime.now(timezone.utc)
+    data = {"invoice_id": inv, "tracking_number": tn, "carrier": body.get("carrier", "OTHER"),
+            "shipped_at": now.isoformat()}
+    with conn() as c:
+        c.execute("INSERT INTO shipments (id, data) VALUES (%s,%s) ON CONFLICT (id) DO UPDATE "
+                  "SET data=EXCLUDED.data, updated_at=now()", (inv, json.dumps(data)))
+        c.commit()
+    ev = Event(id=f"ship_{uuid4().hex[:8]}", type="shipment.created", source="console", subject_id=inv,
+               data=data, verified=True, received_at=now)
+    store_event(ev)
+    run = route(ev) or {}
+    return {"ok": True, "sealed": True, "run_id": run.get("run_id")}
 
 
 @router.get("/health", dependencies=[Depends(_basic_auth)])
 def health() -> dict:
-    return {}
+    g = _rows("SELECT output FROM agent_runs WHERE agent='guardian' AND output ? 'score' "
+              "ORDER BY started_at DESC LIMIT 1")
+    if g:
+        return g[0]["output"]
+    # ponytail: simple fallback until Guardian writes a HealthReport.
+    inv = invoices()
+    open_d = len(_latest_disputes())
+    overdue = sum(1 for i in inv if i["status"] == "overdue")
+    unshipped = sum(1 for i in inv if i["status"] == "paid" and not i["shipped"])
+    score = max(0, 100 - 15 * open_d - 10 * overdue - 10 * unshipped)
+    return {"score": score, "factors": [
+        {"name": "open_disputes", "value": open_d, "impact": "negative" if open_d else "positive",
+         "note": f"{open_d} open dispute(s)"},
+        {"name": "overdue_invoices", "value": overdue, "impact": "negative" if overdue else "positive",
+         "note": f"{overdue} invoice(s) overdue"},
+        {"name": "paid_not_shipped", "value": unshipped, "impact": "negative" if unshipped else "positive",
+         "note": f"{unshipped} paid order(s) without tracking"}],
+        "recommendations": [r for r, bad in (
+            ("Respond to open disputes with the sealed evidence pack", open_d),
+            ("Send reminders for overdue invoices", overdue),
+            ("Add tracking to paid orders", unshipped)) if bad],
+        "appeal_pack": None}
