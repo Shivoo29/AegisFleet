@@ -986,3 +986,91 @@ body {
   .metrics { grid-template-columns: 1fr 1fr; }
   .metric:last-child:nth-child(odd) { grid-column: 1 / -1; }
 }
+
+/* ——— Motion layer ——— */
+
+/* Sliding tab indicator (motion layoutId) replaces the static underline */
+.tabs button { position: relative; }
+.tabs button.active { box-shadow: none; }
+.tabs__indicator { position: absolute; left: 0.5rem; right: 0.5rem; bottom: 0; height: 2px; border-radius: 2px; background: var(--mint); }
+
+/* Overview hero: the ink carries the headline, the numbers sit on it */
+.hero {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  margin: 0 0 1.75rem;
+  padding: clamp(1.5rem, 1rem + 2vw, 2.75rem) clamp(1.1rem, 0.8rem + 1.5vw, 2.25rem) clamp(1.1rem, 0.8rem + 1vw, 1.6rem);
+  border-radius: 18px;
+  background: var(--ink);
+  color: #fff;
+}
+.hero__glow {
+  position: absolute;
+  inset: -40% -10% auto auto;
+  width: 70%;
+  aspect-ratio: 1;
+  z-index: -1;
+  background:
+    radial-gradient(closest-side, rgba(143, 216, 198, 0.28), transparent 70%),
+    radial-gradient(closest-side at 30% 70%, rgba(15, 98, 89, 0.55), transparent 75%);
+  filter: blur(10px);
+  animation: hero-drift 16s ease-in-out infinite alternate;
+}
+@keyframes hero-drift {
+  from { transform: translate(0, 0) scale(1); }
+  to { transform: translate(-18%, 12%) scale(1.15); }
+}
+.hero__title {
+  margin: 0;
+  max-width: 22ch;
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 1.3rem + 2.6vw, 3.5rem);
+  font-weight: 700;
+  line-height: 1.02;
+  letter-spacing: -0.035em;
+  text-wrap: balance;
+}
+.hero__sub { margin: 0.75rem 0 1.5rem; max-width: 60ch; color: rgba(255, 255, 255, 0.68); font-size: var(--text-base); }
+.hero .metrics { border: 0; box-shadow: 0 1px 0 rgba(255, 255, 255, 0.06), 0 18px 40px rgba(0, 0, 0, 0.28); }
+.hero .metric__label { color: var(--muted); }
+
+/* Who did it: one colour per agent, used as a dot before the run title */
+.agent-dot { display: inline-block; width: 8px; height: 8px; margin-right: 0.5rem; border-radius: 50%; vertical-align: 0.08em; background: var(--border-strong); }
+.agent-dot--sentinel { background: #c98a12; }
+.agent-dot--defender { background: #3d6fd6; }
+.agent-dot--guardian { background: var(--accent); }
+.agent-dot--collector { background: #9a4fb5; }
+
+/* Press feedback: scale to 0.96, never when disabled */
+.btn { transition-property: background-color, border-color, box-shadow, transform; transition-duration: 150ms; transition-timing-function: ease-out; }
+.btn:not(:disabled):active { transform: scale(0.96); }
+.chain__block:active { transform: scale(0.96); }
+
+/* Something waits on the seller: the amber dot breathes */
+.header .badge--amber.badge--dot::before { animation: dot-pulse 1.8s ease-out infinite; }
+@keyframes dot-pulse {
+  0% { box-shadow: 0 0 0 0 rgba(243, 198, 107, 0.6); }
+  100% { box-shadow: 0 0 0 7px rgba(243, 198, 107, 0); }
+}
+
+/* A broken link shudders once when it breaks */
+.chain__block--bad { animation: link-break 0.45s ease-out 1; }
+@keyframes link-break {
+  20% { transform: translateX(-4px) rotate(-1.5deg); }
+  45% { transform: translateX(4px) rotate(1.5deg); }
+  70% { transform: translateX(-2px); }
+}
+
+@media (hover: hover) {
+  .list-card:hover { box-shadow: inset 3px 0 0 var(--accent); background: #fbfcfc; }
+}
+@media (hover: none) {
+  .list-card:hover { box-shadow: none; background: transparent; }
+  .chain__block:hover { transform: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero__glow, .header .badge--amber.badge--dot::before, .chain__block--bad { animation: none; }
+  .btn:not(:disabled):active, .chain__block:active { transform: none; }
+}

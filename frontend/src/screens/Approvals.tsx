@@ -4,6 +4,8 @@ import { usePoll } from '../usePoll'
 import type { Approval } from '../types'
 import { money, relativeTime, agentLabel } from '../format'
 import { StateBlock } from '../components/StateBlock'
+import { AnimatePresence, motion } from 'motion/react'
+import { row } from '../components/Motion'
 
 function asApprovalList(data: unknown): Approval[] {
   if (Array.isArray(data)) return data as Approval[]
@@ -68,6 +70,7 @@ export default function Approvals() {
 
         {items.length > 0 && (
           <div className="list">
+            <AnimatePresence initial={false}>
             {items.map((a) => {
               const summary = String(a.summary ?? '')
               const reason = String(a.reason ?? '')
@@ -78,7 +81,7 @@ export default function Approvals() {
                 a.amount_cents != null ? money(a.amount_cents, a.currency ?? 'USD') : null
 
               return (
-                <article key={String(a.id)} className="list-card">
+                <motion.article key={String(a.id)} className="list-card" layout="position" {...row}>
                   <div className="list-card__head">
                     <div>
                       <h3 className="list-card__title">{summary}</h3>
@@ -123,9 +126,10 @@ export default function Approvals() {
                       Reject
                     </button>
                   </div>
-                </article>
+                </motion.article>
               )
             })}
+            </AnimatePresence>
           </div>
         )}
       </div>

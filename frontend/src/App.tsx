@@ -1,4 +1,6 @@
 import { useEffect, useState } from 'react'
+import { AnimatePresence, MotionConfig, motion } from 'motion/react'
+import { SPRING } from './components/Motion'
 import { USE_MOCKS, get } from './api'
 import { usePoll } from './usePoll'
 import Login, { type Me } from './screens/Login'
@@ -53,6 +55,7 @@ export default function App() {
   if (me === null) return <Login onLogin={setMe} />
 
   return (
+    <MotionConfig reducedMotion="user">
     <div className="app">
       <header className="header">
         <div className="header__brand">
@@ -92,6 +95,7 @@ export default function App() {
               onClick={() => setActive(t)}
             >
               {t}
+              {active === t && <motion.span layoutId="tab-indicator" className="tabs__indicator" transition={SPRING} />}
             </button>
           ))}
         </nav>
@@ -108,17 +112,27 @@ export default function App() {
       <Tour />
 
       <main className="main">
-        {active === 'Overview' && <Overview />}
-        {active === 'Ledger' && <Ledger />}
-        {active === 'Approvals' && <Approvals />}
-        {active === 'Activity' && <Activity />}
-        {active === 'Disputes' && <Disputes />}
-        {active === 'Inbox' && <Inbox />}
-        {active === 'Invoices' && <Invoices />}
-        {active === 'Health' && <Health />}
-        {active === 'Demo' && <Demo />}
+        <AnimatePresence mode="wait" initial={false}>
+          <motion.div
+            key={active}
+            initial={{ opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0, transition: { duration: 0.2, ease: [0.2, 0, 0, 1] } }}
+            exit={{ opacity: 0, transition: { duration: 0.1 } }}
+          >
+            {active === 'Overview' && <Overview />}
+            {active === 'Ledger' && <Ledger />}
+            {active === 'Approvals' && <Approvals />}
+            {active === 'Activity' && <Activity />}
+            {active === 'Disputes' && <Disputes />}
+            {active === 'Inbox' && <Inbox />}
+            {active === 'Invoices' && <Invoices />}
+            {active === 'Health' && <Health />}
+            {active === 'Demo' && <Demo />}
+          </motion.div>
+        </AnimatePresence>
       </main>
     </div>
+    </MotionConfig>
   )
 }
 
