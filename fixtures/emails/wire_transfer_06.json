@@ -1,0 +1,8 @@
+{
+  "type": "email.received",
+  "subject_id": "INV-1667",
+  "from": "Robert Cole <r.cole@yahoo.com>",
+  "subject": "Payment sent by Western Union",
+  "body": "I have sent the payment of $980.00 for INV-1667 by Western Union. MTCN 7745-1120-8890. Ship the item today and send tracking to release the funds.",
+  "expected": "scam"
+}

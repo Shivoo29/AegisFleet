@@ -1,1 +1,8 @@
-{"type": "email.received", "subject_id": "INV-0007", "from": "service@paypa1-support.com", "subject": "Payment received", "body": "You have received $600.00 for INV-0007. Funds are on hold until you ship and send tracking."}
+{
+  "type": "email.received",
+  "subject_id": "INV-0007",
+  "from": "service@paypa1-support.com",
+  "subject": "Payment received",
+  "body": "You have received $600.00 for INV-0007. Funds are on hold until you ship and send tracking.",
+  "expected": "scam"
+}

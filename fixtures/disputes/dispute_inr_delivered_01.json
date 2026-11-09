@@ -1,0 +1,50 @@
+{
+  "type": "dispute.created",
+  "subject_id": "PP-D-1001",
+  "dispute": {
+    "dispute_id": "PP-D-1001",
+    "reason": "MERCHANDISE_OR_SERVICE_NOT_RECEIVED",
+    "status": "OPEN",
+    "amount": {"value": "600.00", "currency_code": "USD"},
+    "buyer": {"name": "Alicia Grant", "email": "alicia.grant@example.com"},
+    "seller_transactions": [{"transaction_id": "TXN-9001", "invoice_id": "INV-1001"}],
+    "create_time": "2026-10-08T10:12:00Z"
+  },
+  "ledger_seed": [
+    {
+      "kind": "event",
+      "payload": {
+        "type": "payment.captured",
+        "verified": true,
+        "amount_cents": 60000,
+        "currency": "USD",
+        "invoice_id": "INV-1001",
+        "transaction_id": "TXN-9001"
+      }
+    },
+    {
+      "kind": "event",
+      "payload": {
+        "type": "shipment.created",
+        "verified": true,
+        "invoice_id": "INV-1001",
+        "tracking_number": "1Z999AA10123456784",
+        "carrier": "UPS",
+        "shipped_at": "2026-10-03",
+        "address_match": true
+      }
+    },
+    {
+      "kind": "event",
+      "payload": {
+        "type": "delivery.confirmed",
+        "verified": true,
+        "invoice_id": "INV-1001",
+        "tracking_number": "1Z999AA10123456784",
+        "delivered_at": "2026-10-06",
+        "delivered_to": "Alicia Grant, 44 Pine Street, Austin, TX"
+      }
+    }
+  ],
+  "expected_action": "provide_evidence"
+}

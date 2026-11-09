@@ -1,0 +1,8 @@
+{
+  "type": "email.received",
+  "subject_id": "INV-1043",
+  "from": "PayPal Billing <billing@paypal-invoices.com>",
+  "subject": "Invoice INV-1043 paid",
+  "body": "Invoice INV-1043 has been paid. A payment of $1,250.00 is ready for release. No further action is required from the buyer.",
+  "expected": "scam"
+}

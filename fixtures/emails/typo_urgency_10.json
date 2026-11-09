@@ -1,0 +1,8 @@
+{
+  "type": "email.received",
+  "subject_id": "INV-4004",
+  "from": "PaypaI Service <service@paypa1.com>",
+  "subject": "Final notice: payment on hold",
+  "body": "URGENT: your payment of $760.00 for INV-4004 is on hold. Ship immediately and send the tracking number to release the funds. This is a final warning.",
+  "expected": "scam"
+}

@@ -1,0 +1,8 @@
+{
+  "type": "email.received",
+  "subject_id": "INV-1310",
+  "from": "Daniel Reeves <daniel.reeves@gmail.com>",
+  "subject": "Payment sent - overpayment",
+  "body": "Hi, I sent $850.00 for INV-1310 but the invoice was only $400.00. I accidentally overpaid. Please refund the difference of $450.00 via Zelle to daniel.reeves@gmail.com today.",
+  "expected": "scam"
+}

@@ -1,0 +1,20 @@
+{
+  "type": "email.received",
+  "subject_id": "INV-2001",
+  "from": "PayPal <service@paypal.com>",
+  "subject": "You've received a payment",
+  "body": "You've received a $250.00 payment from Acme Co for invoice INV-2001. The funds are available in your PayPal balance.",
+  "ledger_seed": [
+    {
+      "kind": "event",
+      "payload": {
+        "type": "payment.captured",
+        "verified": true,
+        "amount_cents": 25000,
+        "currency": "USD",
+        "invoice_id": "INV-2001"
+      }
+    }
+  ],
+  "expected": "legit"
+}

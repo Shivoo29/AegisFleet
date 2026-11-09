@@ -1,0 +1,50 @@
+{
+  "type": "dispute.created",
+  "subject_id": "PP-D-1005",
+  "dispute": {
+    "dispute_id": "PP-D-1005",
+    "reason": "MERCHANDISE_OR_SERVICE_NOT_RECEIVED",
+    "status": "OPEN",
+    "amount": {"value": "150.00", "currency_code": "USD"},
+    "buyer": {"name": "Sofia Ramirez", "email": "sofia.ramirez@example.com"},
+    "seller_transactions": [{"transaction_id": "TXN-9005", "invoice_id": "INV-1005"}],
+    "create_time": "2026-10-08T14:40:00Z"
+  },
+  "ledger_seed": [
+    {
+      "kind": "event",
+      "payload": {
+        "type": "payment.captured",
+        "verified": true,
+        "amount_cents": 15000,
+        "currency": "USD",
+        "invoice_id": "INV-1005",
+        "transaction_id": "TXN-9005",
+        "paid_at": "2026-09-20"
+      }
+    },
+    {
+      "kind": "event",
+      "payload": {
+        "type": "shipment.created",
+        "verified": true,
+        "invoice_id": "INV-1005",
+        "tracking_number": "9405511202555123456789",
+        "carrier": "USPS",
+        "shipped_at": "2026-10-01",
+        "address_match": true
+      }
+    },
+    {
+      "kind": "event",
+      "payload": {
+        "type": "delivery.confirmed",
+        "verified": true,
+        "invoice_id": "INV-1005",
+        "tracking_number": "9405511202555123456789",
+        "delivered_at": "2026-10-04"
+      }
+    }
+  ],
+  "expected_action": "offer_refund"
+}
