@@ -26,6 +26,15 @@ ALWAYS_APPROVE = {
     "accept_dispute_claim",
 }
 
+# Records seeded by the demo story (app/demo.py seed()). PayPal has never heard of them, so calls
+# about them run on the fake client and are sealed as simulated. Everything else hits the sandbox.
+SIMULATED_IDS = {"INV-0005", "INV-0006", "INV-0007", "PP-D-12345", "CAP-DEMO"}
+
+
+def is_simulated(args: dict) -> bool:
+    return any(args.get(k) in SIMULATED_IDS for k in ("invoice_id", "dispute_id", "capture_id", "subject_id"))
+
+
 # Per (agent, tool) cap: max executions per subject per 7-day window.
 CAPS = {("collector", "send_invoice_reminder"): 2}
 

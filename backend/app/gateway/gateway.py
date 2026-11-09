@@ -105,12 +105,18 @@ def _take_budget(agent: str, tool: str, args: dict) -> bool:
 
 def _execute(agent: str, tool: str, args: dict, reason: str, approval_id: str | None = None) -> Decision:
     from app.paypal.client import get_client
+    from app.paypal.fake import FakePayPal
+    simulated = rules.is_simulated(args)
+    client = FakePayPal() if simulated else get_client()
     try:
-        result = getattr(get_client(), tool)(args)
+        result = getattr(client, tool)(args)
     except NotImplementedError:
         return _seal_decision("deny", f"{tool} not implemented yet", agent, tool, args, approval_id)
     except Exception as e:  # noqa: BLE001
         return _seal_decision("deny", f"execution failed: {e}", agent, tool, args, approval_id)
+    if simulated:
+        result = {**(result or {}), "simulated": True}
+        reason = f"{reason} (simulated PayPal: demo record)"
     return _seal_decision("allow", reason, agent, tool, args, approval_id, result=result)
 
 

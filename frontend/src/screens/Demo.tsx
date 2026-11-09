@@ -10,6 +10,12 @@ type Beat = {
 
 const BEATS: Beat[] = [
   {
+    id: 'sandbox_invoice',
+    title: 'Real PayPal invoice',
+    description: 'Issue a real $600 invoice in the PayPal sandbox. Pay it as the sandbox buyer and the signed webhook marks it paid here.',
+    path: '/api/demo/sandbox_invoice',
+  },
+  {
     id: 'scam_email',
     title: 'Fake payment email',
     description: 'Inject a scam “payment received” email. Sentinel should flag it and keep the ship gate closed.',
@@ -43,7 +49,7 @@ const BEATS: Beat[] = [
 
 export default function Demo() {
   const [busyId, setBusyId] = useState<string | null>(null)
-  const [log, setLog] = useState<{ id: string; ok: boolean; message: string }[]>([])
+  const [log, setLog] = useState<{ id: string; ok: boolean; message: string; link?: string }[]>([])
   const [available, setAvailable] = useState<boolean | null>(null)
 
   async function checkStatus() {
@@ -63,12 +69,13 @@ export default function Demo() {
   async function run(beat: Beat) {
     setBusyId(beat.id)
     try {
-      const res = await post<{ ok?: boolean; message?: string }>(beat.path, {})
+      const res = await post<{ ok?: boolean; message?: string; link?: string }>(beat.path, {})
       setLog((prev) => [
         {
           id: beat.id,
           ok: res?.ok !== false,
-          message: res?.message || `${beat.title} completed (mock)`,
+          message: res?.message || `${beat.title} completed`,
+          link: res?.link,
         },
         ...prev,
       ].slice(0, 8))
@@ -132,6 +139,12 @@ export default function Demo() {
                 {entry.ok ? 'ok' : 'fail'}
               </span>{' '}
               {entry.message}
+              {entry.link && (
+                <>
+                  {' '}
+                  <a href={entry.link} target="_blank" rel="noreferrer">Open the PayPal payment page</a>
+                </>
+              )}
             </li>
           ))}
         </ul>

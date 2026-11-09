@@ -60,10 +60,20 @@ class PayPalClient:
         return self._req("GET", "/v2/invoicing/invoices", params={"page_size": args.get("page_size", 50)})
 
     def create_invoice(self, args: dict) -> dict:
-        return self._req("POST", "/v2/invoicing/invoices", json=args["invoice"])
+        """One-line invoice from our shape: invoice_number, item, amount_cents, currency, note."""
+        body = {"detail": {"invoice_number": args["invoice_number"], "currency_code": args.get("currency", "USD"),
+                           "note": args.get("note", "")},
+                "items": [{"name": args.get("item", "Order"), "quantity": "1", "unit_amount": _money(args)}]}
+        if args.get("buyer_email"):
+            body["primary_recipients"] = [{"billing_info": {"email_address": args["buyer_email"]}}]
+        out = self._req("POST", "/v2/invoicing/invoices", json=body)
+        out.setdefault("id", out.get("href", "").rstrip("/").split("/")[-1])  # minimal response: id is in the link
+        return out
 
     def send_invoice(self, args: dict) -> dict:
-        return self._req("POST", f"/v2/invoicing/invoices/{args['invoice_id']}/send", json={"send_to_recipient": True})
+        """Without a buyer email PayPal still issues the invoice; the payer-view link is shareable."""
+        return self._req("POST", f"/v2/invoicing/invoices/{args['invoice_id']}/send",
+                         json={"send_to_recipient": bool(args.get("buyer_email")), "send_to_invoicer": False})
 
     def send_invoice_reminder(self, args: dict) -> dict:
         return self._req("POST", f"/v2/invoicing/invoices/{args['invoice_id']}/remind",

@@ -95,3 +95,18 @@ def test_approve_api() -> None:
     assert cl.post(f"/api/approvals/{d.approval_id}/approve", auth=("skj", "dev")).status_code == 409
     from app.ledger import verify
     assert verify()["ok"]
+
+
+def test_demo_records_never_reach_paypal_in_sandbox(monkeypatch) -> None:
+    """Seeded ids run on the fake client and are sealed as simulated, even with PAYPAL_MODE=sandbox."""
+    from app.config import get_settings
+    from app.paypal import client as pp
+    monkeypatch.setenv("PAYPAL_MODE", "sandbox")
+    monkeypatch.setenv("CONSOLE_PASSWORD", "not-dev")
+    get_settings.cache_clear()
+    monkeypatch.setattr(pp.PayPalClient, "_req", lambda *a, **k: (_ for _ in ()).throw(AssertionError("hit PayPal")))
+    try:
+        d = gateway.call("collector", "get_invoice", {"invoice_id": "INV-0007"}, "r")
+    finally:
+        get_settings.cache_clear()
+    assert d.outcome == "allow" and d.result["simulated"] is True

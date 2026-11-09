@@ -263,7 +263,7 @@ def invoices() -> list:
                     "status": "paid" if inv in paid else "overdue" if late else "sent",
                     "days_overdue": late, "risk": risk, "shipped": inv in ships,
                     "tracking_number": (ships.get(inv) or {}).get("tracking_number"),
-                    "created_at": d.get("created_at"), "paid_at": paid.get(inv)})
+                    "created_at": d.get("created_at"), "paid_at": paid.get(inv), "pay_url": d.get("pay_url")})
     return out
 
 
