@@ -27,14 +27,7 @@ export default function Overview() {
         {error && <StateBlock kind="error" description={error.message} />}
 
         {summary && (
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))',
-              gap: '0.75rem',
-              marginBottom: '1.25rem',
-            }}
-          >
+          <div className="metrics overview__metrics">
             <Stat
               label="Money at risk"
               value={money(summary.money_at_risk_cents, summary.currency)}
@@ -57,7 +50,7 @@ export default function Overview() {
           </div>
         )}
 
-        <h3 style={{ margin: '0 0 0.6rem', fontSize: 'var(--text-base)' }}>Recent agent activity</h3>
+        <h3 className="section-title">Recent agent activity</h3>
         {!runs?.length && !loading && (
           <StateBlock kind="empty" title="No recent runs" description="Agent activity will show here." />
         )}
@@ -96,31 +89,10 @@ function Stat({
   value: string
   tone: 'green' | 'amber' | 'red' | 'gray'
 }) {
-  const badge =
-    tone === 'green'
-      ? 'badge--green'
-      : tone === 'amber'
-        ? 'badge--amber'
-        : tone === 'red'
-          ? 'badge--red'
-          : 'badge--gray'
   return (
-    <div
-      style={{
-        border: '1px solid var(--border)',
-        borderRadius: 'var(--radius)',
-        padding: '0.85rem 1rem',
-        background: 'var(--bg-elevated)',
-      }}
-    >
-      <div style={{ fontSize: 'var(--text-xs)', color: 'var(--muted)', marginBottom: '0.35rem' }}>
-        {label}
-      </div>
-      <div style={{ fontSize: 'var(--text-lg)', fontWeight: 600 }} className={tone === 'amber' || tone === 'red' ? 'money' : undefined}>
-        <span className={`badge ${badge}`} style={{ fontSize: '0.95rem', fontWeight: 600 }}>
-          {value}
-        </span>
-      </div>
-    </div>
+    <article className={`metric metric--${tone}`}>
+      <div className="metric__label">{label}</div>
+      <strong className="metric__value">{value}</strong>
+    </article>
   )
 }

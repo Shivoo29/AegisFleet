@@ -31,10 +31,29 @@ export default function App() {
     <div className="app">
       <header className="header">
         <div className="header__brand">
-          <div className="header__mark" aria-hidden>
-            A
+          <div className="header__mark" aria-hidden="true">
+            <svg className="header__symbol" viewBox="0 0 32 32" focusable="false">
+              <path
+                d="M16 3.5 26 7.3v7.3c0 6.2-3.8 11.1-10 14.1-6.2-3-10-7.9-10-14.1V7.3L16 3.5Z"
+                fill="none"
+                stroke="currentColor"
+                strokeLinejoin="round"
+                strokeWidth="1.7"
+              />
+              <path
+                d="m10.5 15.8 3.6 3.6 7.4-7.4"
+                fill="none"
+                stroke="currentColor"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+              />
+            </svg>
           </div>
-          <h1 className="header__logo">AegisFleet</h1>
+          <div className="header__brand-copy">
+            <h1 className="header__logo">AegisFleet</h1>
+            <span className="header__descriptor">Seller console</span>
+          </div>
         </div>
 
         <nav className="tabs" aria-label="Main">
@@ -43,6 +62,7 @@ export default function App() {
               key={t}
               type="button"
               className={active === t ? 'active' : ''}
+              aria-current={active === t ? 'page' : undefined}
               onClick={() => setActive(t)}
             >
               {t}
