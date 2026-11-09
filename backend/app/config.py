@@ -29,6 +29,7 @@ class Settings(BaseSettings):
     approval_threshold_cents: int = 10000
     kill_switch: bool = False
     console_password: str = "dev"
+    judge_password: str = ""  # empty = judge login disabled
     demo_mode: bool = True
 
     @field_validator("agents_enabled", mode="before")

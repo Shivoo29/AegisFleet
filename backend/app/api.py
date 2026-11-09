@@ -1,10 +1,13 @@
-"""Console API (M8). HTTP Basic behind /api/*."""
+"""Console API (M8). Session cookie (login page) or HTTP Basic behind /api/*."""
+import hashlib
+import hmac
 import json
 import secrets
+import time
 from datetime import datetime, timezone
 from uuid import uuid4
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 
 from app.config import get_settings
@@ -12,17 +15,74 @@ from app.db import conn
 from app.ledger import find as ledger_find, verify
 
 router = APIRouter(prefix="/api")
-security = HTTPBasic()
+security = HTTPBasic(auto_error=False)
+COOKIE = "aegis_session"
+SESSION_HOURS = 12
 
 
-def _basic_auth(credentials: HTTPBasicCredentials = Depends(security)) -> None:
-    settings = get_settings()
-    if not secrets.compare_digest(credentials.password, settings.console_password):
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="invalid console password",
-            headers={"WWW-Authenticate": "Basic"},
-        )
+def _role_for(username: str, password: str) -> str | None:
+    """'dev' with CONSOLE_PASSWORD, 'judge' with JUDGE_PASSWORD (if set). Constant-time compares."""
+    s = get_settings()
+    if username == "judge":
+        return "judge" if s.judge_password and secrets.compare_digest(password, s.judge_password) else None
+    return "dev" if secrets.compare_digest(password, s.console_password) else None
+
+
+def _sign(payload: str) -> str:
+    s = get_settings()
+    # key changes when either password changes, which logs everyone out
+    key = hashlib.sha256(f"aegis-session|{s.console_password}|{s.judge_password}".encode()).digest()
+    return hmac.new(key, payload.encode(), hashlib.sha256).hexdigest()
+
+
+def _session_user(token: str | None) -> str | None:
+    try:
+        user, exp, sig = (token or "").split("|")
+        if hmac.compare_digest(sig, _sign(f"{user}|{exp}")) and int(exp) > time.time():
+            return user
+    except ValueError:
+        pass
+    return None
+
+
+def _basic_auth(request: Request, credentials: HTTPBasicCredentials | None = Depends(security)) -> str:
+    """Session cookie (console) or HTTP Basic (curl/tests). Returns the user name.
+
+    No WWW-Authenticate header on 401, so browsers show our login page instead of a popup.
+    """
+    user = _session_user(request.cookies.get(COOKIE))
+    if user:
+        return user
+    if credentials:
+        role = _role_for(credentials.username, credentials.password)
+        if role:
+            return "judge" if role == "judge" else credentials.username
+    raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="login required")
+
+
+@router.post("/login")
+def login(body: dict, request: Request, response: Response) -> dict:
+    username, password = str(body.get("username", "")).strip(), str(body.get("password", ""))
+    role = _role_for(username, password)
+    if role is None or (role == "dev" and username != "dev"):
+        time.sleep(0.5)  # ponytail: crude brute-force brake; per-IP lockout if this ever faces real users
+        raise HTTPException(401, "wrong username or password")
+    exp = int(time.time()) + SESSION_HOURS * 3600
+    https = request.headers.get("x-forwarded-proto", request.url.scheme) == "https"
+    response.set_cookie(COOKIE, f"{username}|{exp}|{_sign(f'{username}|{exp}')}", max_age=SESSION_HOURS * 3600,
+                        httponly=True, secure=https, samesite="lax", path="/")
+    return {"user": username, "role": role}
+
+
+@router.post("/logout")
+def logout(response: Response) -> dict:
+    response.delete_cookie(COOKIE, path="/")
+    return {"ok": True}
+
+
+@router.get("/me")
+def me(user: str = Depends(_basic_auth)) -> dict:
+    return {"user": user, "role": "judge" if user == "judge" else "dev"}
 
 
 @router.get("/summary", dependencies=[Depends(_basic_auth)])
@@ -77,16 +137,16 @@ def approvals(status: str = "pending") -> list:
 
 @router.post("/approvals/{approval_id}/{action}", dependencies=[Depends(_basic_auth)])
 def decide_approval(approval_id: str, action: str, body: dict | None = None,
-                    credentials: HTTPBasicCredentials = Depends(security)) -> dict:
+                    user: str = Depends(_basic_auth)) -> dict:
     from app.gateway import gateway
     if action not in ("approve", "reject"):
         raise HTTPException(404, "action must be approve or reject")
     note = (body or {}).get("note", "")
     try:
         if action == "reject":
-            gateway.reject(approval_id, credentials.username, note)
+            gateway.reject(approval_id, user, note)
             return {"status": "rejected"}
-        d = gateway.approve(approval_id, credentials.username, note)
+        d = gateway.approve(approval_id, user, note)
     except KeyError:
         raise HTTPException(409, "approval not found or already decided")
     return {"status": "approved", "decision": d.model_dump()}

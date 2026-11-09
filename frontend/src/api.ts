@@ -50,6 +50,7 @@ export async function get<T>(path: string): Promise<T> {
     return [] as unknown as T
   }
   const res = await fetch(`${BASE}${path}`, { credentials: 'include' })
+  if (res.status === 401) window.dispatchEvent(new Event('aegis:unauthorized'))
   if (!res.ok) throw new Error(await res.text())
   return res.json()
 }
@@ -77,6 +78,7 @@ export async function post<T>(path: string, body: unknown): Promise<T> {
     credentials: 'include',
     body: JSON.stringify(body),
   })
+  if (res.status === 401) window.dispatchEvent(new Event('aegis:unauthorized'))
   if (!res.ok) throw new Error(await res.text())
   return res.json()
 }
