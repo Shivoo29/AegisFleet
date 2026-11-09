@@ -1074,3 +1074,29 @@ body {
   .hero__glow, .header .badge--amber.badge--dot::before, .chain__block--bad { animation: none; }
   .btn:not(:disabled):active, .chain__block:active { transform: none; }
 }
+
+/* ——— Page backdrop: ledger dot-grid with soft teal light, fixed behind content ——— */
+body { position: relative; }
+body::before,
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+}
+body::before {
+  background:
+    radial-gradient(60rem 40rem at 100% 0%, rgba(143, 216, 198, 0.35), transparent 60%),
+    radial-gradient(50rem 36rem at 0% 100%, rgba(15, 98, 89, 0.16), transparent 60%),
+    radial-gradient(40rem 30rem at 15% 25%, rgba(201, 138, 18, 0.06), transparent 60%);
+}
+body::after {
+  background-image:
+    radial-gradient(circle at 1px 1px, rgba(11, 53, 48, 0.16) 1px, transparent 1.5px),
+    linear-gradient(rgba(11, 53, 48, 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(11, 53, 48, 0.035) 1px, transparent 1px);
+  background-size: 24px 24px, 120px 120px, 120px 120px;
+  mask-image: radial-gradient(ellipse 90% 80% at 50% 30%, #000 40%, transparent 100%);
+}
+.main { position: relative; }
