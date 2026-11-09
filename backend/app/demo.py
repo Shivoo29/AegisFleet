@@ -154,7 +154,8 @@ def sandbox_invoice() -> dict:
     c = get_client()
     created = c.create_invoice({"invoice_number": number, "item": "Hand-made silver necklace",
                                 "amount_cents": 60000, "currency": "USD",
-                                "note": "Riya's Jewellery. Thank you for your order."})
+                                "business_name": "Riya's Jewellery",
+                                "note": "Thank you for your order."})
     sent = c.send_invoice({"invoice_id": created["id"]})
     pay_url = sent.get("href", "")
     data = {"buyer_email": "sandbox buyer", "amount_cents": 60000, "currency": "USD",
@@ -170,3 +171,28 @@ def sandbox_invoice() -> dict:
     return {"ok": True, "invoice_id": number, "paypal_invoice_id": created["id"], "link": pay_url,
             "message": f"Real PayPal sandbox invoice {number} issued for $600.00. Pay it as the sandbox buyer; "
                        "PayPal's signed webhook will mark it paid here."}
+
+
+@router.post("/sandbox_record_payment")
+def sandbox_record_payment() -> dict:
+    """Backup for flaky sandbox checkout: record payment on the newest unpaid sandbox invoice.
+
+    PayPal then sends the same signed INVOICING.INVOICE.PAID webhook a buyer payment would.
+    """
+    from app.config import get_settings
+    if get_settings().paypal_mode != "sandbox":
+        raise HTTPException(409, "PAYPAL_MODE is not sandbox")
+    with conn() as c:
+        with c.cursor() as cur:
+            cur.execute("SELECT i.id, i.data FROM invoices i WHERE i.data ? 'paypal_invoice_id' AND NOT EXISTS "
+                        "(SELECT 1 FROM ledger l WHERE l.subject_id=i.id AND l.payload->>'type'='invoice.paid') "
+                        "ORDER BY i.updated_at DESC LIMIT 1")
+            row = cur.fetchone()
+    if row is None:
+        raise HTTPException(409, "No unpaid PayPal invoice. Click 'Real PayPal invoice' first.")
+    from app.paypal.client import get_client
+    get_client().record_invoice_payment({"invoice_id": row["data"]["paypal_invoice_id"], "amount_cents": 60000,
+                                         "currency": "USD", "note": "Paid by bank transfer"})
+    return {"ok": True, "invoice_id": row["id"],
+            "message": f"Payment recorded on {row['id']} in PayPal. PayPal's signed webhook marks it paid here "
+                       "within a minute; check Invoices."}

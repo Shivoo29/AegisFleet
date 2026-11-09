@@ -16,6 +16,12 @@ const BEATS: Beat[] = [
     path: '/api/demo/sandbox_invoice',
   },
   {
+    id: 'sandbox_record_payment',
+    title: 'Record payment (backup)',
+    description: 'If sandbox checkout fails, record the payment on the latest PayPal invoice. PayPal sends the same signed webhook.',
+    path: '/api/demo/sandbox_record_payment',
+  },
+  {
     id: 'scam_email',
     title: 'Fake payment email',
     description: 'Inject a scam “payment received” email. Sentinel should flag it and keep the ship gate closed.',

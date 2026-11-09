@@ -64,6 +64,8 @@ class PayPalClient:
         body = {"detail": {"invoice_number": args["invoice_number"], "currency_code": args.get("currency", "USD"),
                            "note": args.get("note", "")},
                 "items": [{"name": args.get("item", "Order"), "quantity": "1", "unit_amount": _money(args)}]}
+        if args.get("business_name"):
+            body["invoicer"] = {"business_name": args["business_name"]}
         if args.get("buyer_email"):
             body["primary_recipients"] = [{"billing_info": {"email_address": args["buyer_email"]}}]
         out = self._req("POST", "/v2/invoicing/invoices", json=body)
@@ -74,6 +76,11 @@ class PayPalClient:
         """Without a buyer email PayPal still issues the invoice; the payer-view link is shareable."""
         return self._req("POST", f"/v2/invoicing/invoices/{args['invoice_id']}/send",
                          json={"send_to_recipient": bool(args.get("buyer_email")), "send_to_invoicer": False})
+
+    def record_invoice_payment(self, args: dict) -> dict:
+        """Seller records a payment received outside PayPal checkout; PayPal still fires INVOICING.INVOICE.PAID."""
+        return self._req("POST", f"/v2/invoicing/invoices/{args['invoice_id']}/payments",
+                         json={"method": args.get("method", "OTHER"), "amount": _money(args), "note": args.get("note", "")})
 
     def send_invoice_reminder(self, args: dict) -> dict:
         return self._req("POST", f"/v2/invoicing/invoices/{args['invoice_id']}/remind",
