@@ -194,20 +194,60 @@ def _detect_signals(text: str, sender_domain: str, urls: list[str]) -> list[str]
 def _pick_match(matches: list[LedgerEntry], amounts: list[int]) -> LedgerEntry | None:
     if not matches:
         return None
-    for entry in matches:
-        amount = (entry.payload or {}).get("amount_cents")
-        if amount is None or not amounts:
-            return entry
-        if int(amount) in amounts:
-            return entry
+    if amounts:
+        for entry in matches:
+            amount = (entry.payload or {}).get("amount_cents")
+            if amount is not None and int(amount) in amounts:
+                return entry
+        for entry in matches:
+            if (entry.payload or {}).get("amount_cents") is None:
+                return entry
     return matches[0]
 
 
 def _amount_mismatch(matches: list[LedgerEntry], amounts: list[int]) -> bool:
     if not matches or not amounts:
         return False
-    ledger_amounts = {int((entry.payload or {}).get("amount_cents", -1)) for entry in matches}
-    return not any(amount in ledger_amounts for amount in amounts)
+    known_amounts = {
+        int(entry.payload["amount_cents"])
+        for entry in matches
+        if (entry.payload or {}).get("amount_cents") is not None
+    }
+    if not known_amounts:
+        return False
+    return not any(amount in known_amounts for amount in amounts)
+
+
+def _explain_scam(
+    invoice_id: str | None,
+    signals: list[str],
+    claims_payment: bool,
+    matches: list[LedgerEntry],
+    mismatch: bool,
+) -> str:
+    parts: list[str] = []
+    if claims_payment and not matches:
+        parts.append(f"We found no verified PayPal payment for {invoice_id or 'this invoice'}.")
+    elif mismatch:
+        parts.append("The verified PayPal amount does not match the email.")
+    if "lookalike sender domain" in signals:
+        parts.append("The sender is not paypal.com.")
+    elif "link does not resolve to paypal.com" in signals:
+        parts.append("The link does not go to paypal.com.")
+    elif "asks for account verification or credentials" in signals:
+        parts.append("It asks for account details or a login code.")
+    elif "requests off-platform payment" in signals:
+        parts.append("It asks for an unsafe payment method.")
+    elif "overpayment or refund-the-difference pattern" in signals:
+        parts.append("It asks you to send money back.")
+    elif "creates false urgency" in signals:
+        parts.append("It pressures you to act quickly.")
+    elif "asks to ship before funds clear" in signals:
+        parts.append("It asks you to ship before the money is secure.")
+    if not parts:
+        parts.append("The email does not match the ledger.")
+    parts.append("Don't ship yet.")
+    return " ".join(parts[:3])
 
 
 def _dedupe(values: list[str]) -> list[str]:
@@ -262,24 +302,33 @@ def handle(event: Event, ctx: AgentContext) -> SentinelVerdict:
     if hard_scam:
         verdict = "scam"
         confidence = max(0.9, llm_verdict.confidence if llm_verdict.verdict == "scam" else 0.0)
-        explanation = "Hard rule: " + "; ".join(signals)
+        explanation = _explain_scam(invoice_id, signals, claims_payment, matches, mismatch)
     elif matched is not None:
         if llm_verdict.verdict == "scam" and llm_verdict.red_flags:
             verdict = "scam"
             confidence = max(0.75, llm_verdict.confidence)
-            explanation = llm_verdict.explanation or "Model flagged the email despite a verified payment."
+            explanation = (
+                "A PayPal payment is verified, but the email has suspicious details. "
+                "Check it in PayPal before acting."
+            )
         else:
             verdict = "legit"
-            confidence = 0.95 if not amounts or not mismatch else 0.8
-            explanation = f"Verified ledger entry {matched.id} matches invoice {invoice_id}."
+            confidence = 0.95
+            explanation = (
+                f"We found verified PayPal payment #{matched.id} for {invoice_id}. "
+                "The funds are confirmed."
+            )
     elif llm_verdict.verdict == "scam":
         verdict = "scam"
         confidence = max(0.7, llm_verdict.confidence)
-        explanation = llm_verdict.explanation or "Model classified the email as scam."
+        explanation = "The email looks like a scam. Check the payment in PayPal before shipping."
     else:
         verdict = "unsure"
         confidence = 0.35
-        explanation = "No verified payment match and no conclusive fraud signal."
+        explanation = (
+            "We could not confirm a verified PayPal payment. "
+            "Check your PayPal account before shipping."
+        )
 
     if claims_payment and "claims payment not present in ledger" in signals:
         confidence = max(confidence, 0.9)
