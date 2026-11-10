@@ -954,6 +954,37 @@
         }
       }
     },
+    "/api/mcp/link": {
+      "get": {
+        "tags": [
+          "console"
+        ],
+        "summary": "Mcp Link",
+        "description": "A personal MCP URL (token inside, valid 14 days) for any AI client that only accepts a URL.",
+        "operationId": "mcp_link",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "title": "Response Mcp Link"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Login required: HTTP Basic or the session cookie"
+          }
+        },
+        "security": [
+          {
+            "HTTPBasic": []
+          }
+        ]
+      }
+    },
     "/api/demo/status": {
       "get": {
         "tags": [

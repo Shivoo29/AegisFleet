@@ -74,3 +74,15 @@ def test_mcp_over_http() -> None:
         assert {"create_invoice", "refund_payment", "check_approval", "verify_ledger"} <= tools
         res = _rpc(client, "tools/call", {"name": "verify_ledger", "arguments": {}})["body"]["result"]
         assert json.loads(res["content"][0]["text"])["ok"] is True
+
+
+def test_token_link_works_for_url_only_clients() -> None:
+    from app.main import app
+    with TestClient(app) as client:
+        link = client.get("/api/mcp/link", auth=("dev", "dev")).json()
+        r = client.post(link["url"].split("testserver", 1)[-1], json={"jsonrpc": "2.0", "id": 1, "method": "tools/list",
+                        "params": {}}, headers={"Accept": "application/json, text/event-stream"})
+        assert r.status_code == 200 and r.json()["result"]["tools"]
+        bad = client.post("/mcp?token=dev.9999999999.forged", json={"jsonrpc": "2.0", "id": 1, "method": "tools/list"},
+                          headers={"Accept": "application/json, text/event-stream"})
+        assert bad.status_code == 401

@@ -47,14 +47,13 @@ gets eight tools, and every money tool goes through the same gateway as AegisFle
 Every call is sealed in the hash-chained ledger with the client's name, and the kill switch stops outside agents
 like everything else.
 
-## Claude Code [#claude-code]
+## Connect [#connect]
 
-```
-claude mcp add --transport http aegisfleet https://aegisfleet.solvor.co.in/mcp \
-  --header "Authorization: Basic <base64 of user:password>"
-```
+Get your link from the console: **Demo → Connect any AI agent → Get my MCP link** (a signed token, valid 14 days).
+Paste it into ChatGPT (developer-mode connector, no authentication), Claude.ai (custom connector), Cursor,
+VS Code, Gemini CLI or Codex, or run `claude mcp add --transport http aegisfleet "<link>"`.
 
-The console's Demo tab builds this command for you. Then try:
+Then try:
 
 1. "Invoice a buyer $600 for a hand-made silver necklace." Claude returns the PayPal payment link.
 2. Pay it as the sandbox buyer (or use Record payment on the Demo tab). PayPal's signed webhook marks it paid.

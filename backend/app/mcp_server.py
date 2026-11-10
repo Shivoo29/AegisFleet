@@ -171,8 +171,37 @@ def verify_ledger() -> dict:
 
 # ---------- transport ----------
 
-def _user(header: str) -> str | None:
+TOKEN_DAYS = 14
+
+
+def make_token(user: str) -> str:
+    """Signed, expiring MCP token for clients that only take a URL (ChatGPT, Claude.ai connectors)."""
+    import time
+    from app.api import _sign
+    exp = int(time.time()) + TOKEN_DAYS * 86400
+    return f"{user}.{exp}.{_sign(f'mcp|{user}|{exp}')[:32]}"
+
+
+def _token_user(token: str) -> str | None:
+    import hmac
+    import time
+    from app.api import _sign
+    try:
+        user, exp, sig = token.split(".")
+        ok = hmac.compare_digest(sig, _sign(f"mcp|{user}|{exp}")[:32]) and int(exp) > time.time()
+    except ValueError:
+        return None
+    return user if ok else None
+
+
+def _user(header: str, query: str = "") -> str | None:
+    from urllib.parse import parse_qs
     from app.api import _role_for
+    token = (parse_qs(query).get("token") or [""])[0]
+    if token:
+        return _token_user(token)
+    if header.lower().startswith("bearer "):
+        return _token_user(header[7:].strip())
     if not header.lower().startswith("basic "):
         return None
     try:
@@ -188,9 +217,9 @@ class _Endpoint:
 
     async def __call__(self, scope, receive, send) -> None:
         headers = {k.decode().lower(): v.decode() for k, v in scope.get("headers", [])}
-        user = _user(headers.get("authorization", ""))
+        user = _user(headers.get("authorization", ""), scope.get("query_string", b"").decode())
         if not user or self.manager is None:
-            res = JSONResponse({"error": "login required: HTTP Basic with an AegisFleet console login"}, 401)
+            res = JSONResponse({"error": "login required: an MCP link from the console's Demo tab, or HTTP Basic with a console login"}, 401)
             await res(scope, receive, send)
             return
         client = headers.get("user-agent", "mcp client").split(" ")[0]

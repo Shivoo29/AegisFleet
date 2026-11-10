@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { get, post } from '../api'
 
 type Beat = {
@@ -59,35 +59,47 @@ const BEATS: Beat[] = [
   },
 ]
 
-/** Lets a judge plug their own AI agent (Claude Code) into the shop. The password never leaves the page. */
+/** A personal MCP link (signed token, 14 days) so any AI client can drive the shop through the gateway. */
+const CLIENTS: { name: string; steps: (url: string) => string }[] = [
+  { name: 'ChatGPT', steps: (u) => `Settings → Apps & Connectors → Advanced → turn on Developer mode → Create connector.\nURL: ${u}\nAuthentication: No authentication. Then pick the connector in a chat.` },
+  { name: 'Claude.ai', steps: (u) => `Settings → Connectors → Add custom connector.\nURL: ${u}\nThen enable it from the tools menu in a chat.` },
+  { name: 'Claude Code', steps: (u) => `claude mcp add --transport http aegisfleet "${u}"` },
+  { name: 'Cursor / Windsurf', steps: (u) => `Add to mcp.json:\n{ "mcpServers": { "aegisfleet": { "url": "${u}" } } }` },
+  { name: 'VS Code Copilot', steps: (u) => `Add to .vscode/mcp.json:\n{ "servers": { "aegisfleet": { "type": "http", "url": "${u}" } } }` },
+  { name: 'Gemini CLI', steps: (u) => `Add to ~/.gemini/settings.json:\n{ "mcpServers": { "aegisfleet": { "httpUrl": "${u}" } } }` },
+  { name: 'Codex CLI', steps: (u) => `Add to ~/.codex/config.toml:\n[mcp_servers.aegisfleet]\nurl = "${u}"` },
+]
+
 function ConnectAgent() {
-  const [user, setUser] = useState('judge')
-  const [pw, setPw] = useState('')
+  const [url, setUrl] = useState('')
+  const [client, setClient] = useState(CLIENTS[0].name)
   const [copied, setCopied] = useState(false)
-  useEffect(() => {
-    get<{ user: string }>('/api/me').then((m) => setUser(m.user)).catch(() => undefined)
-  }, [])
-  const url = `${window.location.origin}/mcp`
-  const auth = pw ? btoa(`${user}:${pw}`) : '<type your password above>'
-  const cmd = `claude mcp add --transport http aegisfleet ${url} --header "Authorization: Basic ${auth}"`
+  const steps = CLIENTS.find((c) => c.name === client)!.steps(url || '<click Get my MCP link>')
   return (
     <article className="list-card connect-agent" data-tour="connect-agent">
-      <h3 className="list-card__title">Connect your own AI agent</h3>
+      <h3 className="list-card__title">Connect any AI agent</h3>
       <p className="list-card__meta">
-        AegisFleet is also an MCP server. Plug Claude Code into it and let Claude bill and refund on PayPal. It goes
-        through the same gateway: refunds of $100 or more land in Approvals for you, and every call is sealed in the Ledger.
+        AegisFleet is an MCP server. Connect ChatGPT, Claude, Gemini, Cursor or any MCP client and let it bill and refund on
+        PayPal. It goes through the same gateway: refunds of $100 or more land in Approvals for you, and every call is sealed
+        in the Ledger. Your link works for 14 days; don't share it.
       </p>
-      <label className="label" htmlFor="mcp-pw">Your console password (stays in this browser)</label>
-      <input id="mcp-pw" className="input" type="password" value={pw} onChange={(e) => setPw(e.target.value)}
-        autoComplete="current-password" style={{ maxWidth: 320 }} />
-      <pre className="connect-agent__cmd">{cmd}</pre>
+      <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+        <button type="button" className="btn btn--secondary btn--sm"
+          onClick={() => get<{ url: string }>('/api/mcp/link').then((r) => setUrl(r.url))}>
+          {url ? 'New link' : 'Get my MCP link'}
+        </button>
+        <select className="select" style={{ width: 'auto' }} value={client} onChange={(e) => setClient(e.target.value)}>
+          {CLIENTS.map((c) => <option key={c.name}>{c.name}</option>)}
+        </select>
+      </div>
+      <pre className="connect-agent__cmd">{steps}</pre>
       <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
-        <button type="button" className="btn btn--secondary btn--sm" disabled={!pw}
-          onClick={() => navigator.clipboard.writeText(cmd).then(() => setCopied(true))}>
-          {copied ? 'Copied' : 'Copy command'}
+        <button type="button" className="btn btn--ghost btn--sm" disabled={!url}
+          onClick={() => navigator.clipboard.writeText(client === 'Claude Code' ? steps : url).then(() => setCopied(true))}>
+          {copied ? 'Copied' : client === 'Claude Code' ? 'Copy command' : 'Copy link'}
         </button>
         <span className="list-card__meta">
-          Then ask Claude: “Invoice a buyer $600 for a silver necklace.” After it's paid: “Refund it, it arrived broken.”
+          Then ask: “Invoice a buyer $150 for a silver bangle.” After it's paid: “It arrived bent, refund it.”
         </span>
       </div>
     </article>

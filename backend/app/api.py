@@ -358,3 +358,12 @@ def plans_cancel(plan_id: str, user: str = Depends(_basic_auth)) -> dict:
     except KeyError:
         raise HTTPException(404, "plan not found or already ran")
     return {"ok": True}
+
+
+@router.get("/mcp/link")
+def mcp_link(request: Request, user: str = Depends(_basic_auth)) -> dict:
+    """A personal MCP URL (token inside, valid 14 days) for any AI client that only accepts a URL."""
+    from app.mcp_server import TOKEN_DAYS, make_token
+    base = f"{request.headers.get('x-forwarded-proto', request.url.scheme)}://{request.headers.get('host')}"
+    token = make_token(user)
+    return {"url": f"{base}/mcp?token={token}", "token": token, "days": TOKEN_DAYS}

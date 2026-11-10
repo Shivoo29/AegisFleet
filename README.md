@@ -11,10 +11,10 @@ Live: https://aegisfleet.solvor.co.in · MCP: `https://aegisfleet.solvor.co.in/m
 
 ## Connect an outside agent (MCP)
 
-```bash
-claude mcp add --transport http aegisfleet https://aegisfleet.solvor.co.in/mcp \
-  --header "Authorization: Basic $(printf 'judge:<password>' | base64)"
-```
+Get a personal link (signed token, 14 days) from **Demo → Connect any AI agent**, or `GET /api/mcp/link`.
+It works in any MCP client that takes a URL: ChatGPT (developer-mode connector, no auth), Claude.ai (custom
+connector), Claude Code (`claude mcp add --transport http aegisfleet "<link>"`), Cursor, VS Code, Gemini CLI,
+Codex. HTTP Basic or `Authorization: Bearer <token>` also work.
 
 Eight tools: `create_invoice`, `send_payment_reminder`, `refund_payment`, `check_approval`,
 `check_payment_email`, `list_invoices`, `get_history`, `verify_ledger`. Outside agents act as the
