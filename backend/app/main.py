@@ -33,6 +33,32 @@ def _startup() -> None:
     init_schema()  # fail loudly if DB is down
 
 
+def _openapi() -> dict:
+    """FastAPI titles every property ("Id", "Status", ...); linters flag those as duplicate schema titles."""
+    if app.openapi_schema:
+        return app.openapi_schema
+    from fastapi.openapi.utils import get_openapi
+    spec = get_openapi(title=app.title, version=app.version, description=app.description, routes=app.routes,
+                       servers=app.servers, tags=app.openapi_tags)
+
+    def strip(node, keep: bool = False):
+        if isinstance(node, dict):
+            if not keep:
+                node.pop("title", None) if isinstance(node.get("title"), str) else None
+            for k, v in node.items():
+                strip(v, keep=(k == "schemas"))
+        elif isinstance(node, list):
+            for v in node:
+                strip(v)
+    strip(spec)
+    for s in spec["components"]["schemas"].values():
+        for v in s.values():
+            strip(v)
+    app.openapi_schema = spec
+    return spec
+
+
+app.openapi = _openapi
 app.include_router(api_router)
 app.include_router(demo_router)
 app.include_router(webhook_router)
