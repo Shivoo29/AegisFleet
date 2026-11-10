@@ -24,6 +24,23 @@ PAYMENT_CLAIM_RE = re.compile(
     r"on hold|available|pending|cleared|released)\b",
     re.IGNORECASE | re.DOTALL,
 )
+INJECTION_PATTERNS = (
+    r"\b(?:ignore|disregard|forget)\b.{0,60}\b(?:previous|prior|above|system|developer)\b"
+    r".{0,30}\b(?:instructions?|prompts?|rules?|ledger)\b",
+    r"\b(?:system|developer|assistant)\s*(?:message|prompt|instruction)?\s*:",
+    r"\b(?:call|invoke|run|execute|use)\b.{0,40}\b(?:tool|function)\b",
+    r"\b(?:call|invoke|run|execute|use)\b.{0,60}\b(?:create_refund|send_invoice_reminder|"
+    r"provide_dispute_evidence|accept_dispute_claim|make_dispute_offer|create_shipment_tracking|"
+    r"update_shipment_tracking)\b",
+    r"\bmark\b.{0,40}\b(?:this|the email|it)\b.{0,30}\b(?:legit|safe|paid|verified)\b",
+    r"\b(?:override|bypass)\b.{0,35}\b(?:ledger|gateway|rules?|verdict)\b",
+    r"\b(?:tool_call|function_call)\b",
+    r"\{\s*[\"']?(?:tool|function|tool_call)[\"']?\s*:",
+)
+INJECTION_RE = re.compile(
+    "|".join(f"(?:{pattern})" for pattern in INJECTION_PATTERNS),
+    re.IGNORECASE | re.DOTALL,
+)
 
 CREDENTIAL_PHRASES = (
     "verify your account",
@@ -188,6 +205,8 @@ def _detect_signals(text: str, sender_domain: str, urls: list[str]) -> list[str]
         if phrase in lowered:
             flags.append("asks to ship before funds clear")
             break
+    if INJECTION_RE.search(text):
+        flags.append("contains instructions aimed at the AI")
     return flags
 
 
@@ -240,6 +259,8 @@ def _explain_scam(
         parts.append("It asks for an unsafe payment method.")
     elif "overpayment or refund-the-difference pattern" in signals:
         parts.append("It asks you to send money back.")
+    elif "contains instructions aimed at the AI" in signals:
+        parts.append("It contains instructions aimed at the AI, not at a person.")
     elif "creates false urgency" in signals:
         parts.append("It pressures you to act quickly.")
     elif "asks to ship before funds clear" in signals:
