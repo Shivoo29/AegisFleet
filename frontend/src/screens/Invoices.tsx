@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import { AgGridReact } from 'ag-grid-react'
 import type { ColDef, ICellRendererParams } from 'ag-grid-community'
 import 'ag-grid-community/styles/ag-grid.css'
@@ -21,6 +21,7 @@ type Invoice = {
   tracking_number: string | null
   created_at: string
   paid_at: string | null
+  pay_url?: string | null
 }
 
 function StatusCell(props: ICellRendererParams<Invoice>) {
@@ -30,8 +31,31 @@ function StatusCell(props: ICellRendererParams<Invoice>) {
   return <span className={`badge ${cls}`}>{s}</span>
 }
 
+/** Days past due as a bar that fills toward 30 days; colour follows the risk. */
+const blankWhenPinned = (p: { node: { rowPinned?: string | null } }) =>
+  p.node.rowPinned ? { component: () => null } : undefined
+
+function OverdueCell(props: ICellRendererParams<Invoice>) {
+  const d = (props.value as number) || 0
+  if (!d) return <span className="cell-muted">—</span>
+  const tone = d > 14 ? 'var(--red)' : d > 7 ? '#c98a12' : 'var(--accent)'
+  return (
+    <span className="overdue-cell" title={`${d} days past due`}>
+      <span className="overdue-cell__bar"><span style={{ width: `${Math.min(100, (d / 30) * 100)}%`, background: tone }} /></span>
+      {d}d
+    </span>
+  )
+}
+
+function PayPalCell(props: ICellRendererParams<Invoice>) {
+  const url = props.data?.pay_url
+  if (!url) return <span className="cell-muted">simulated</span>
+  return <a href={url} target="_blank" rel="noreferrer" onClick={(e) => e.stopPropagation()}>Payment page</a>
+}
+
 function RiskCell(props: ICellRendererParams<Invoice>) {
   const r = props.value as string
+  if (!r) return null
   const cls = r === 'high' ? 'badge--red' : r === 'medium' ? 'badge--amber' : 'badge--gray'
   return <span className={`badge ${cls}`}>{r}</span>
 }
@@ -45,6 +69,17 @@ export default function Invoices() {
   const [msg, setMsg] = useState<string | null>(null)
 
   const rows = data ?? []
+  const [quick, setQuick] = useState('')
+  const grid = useRef<AgGridReact<Invoice>>(null)
+  // Totals stay pinned under the grid: what is collected vs still owed.
+  const totals = useMemo(() => {
+    const sum = (f: (i: Invoice) => boolean) => rows.filter(f).reduce((a, i) => a + (i.amount_cents || 0), 0)
+    return [{
+      id: `${rows.length} invoices`, buyer_email: `Collected ${money(sum((i) => i.status === 'paid'), 'USD')}`,
+      amount_cents: sum((i) => i.status !== 'paid'), currency: 'USD', status: 'owed', days_overdue: 0, risk: '',
+      shipped: false, tracking_number: null, created_at: '', paid_at: null,
+    } as Invoice]
+  }, [rows])
 
   const colDefs = useMemo(
     () =>
@@ -59,31 +94,29 @@ export default function Invoices() {
           valueFormatter: (p: { data?: Invoice }) =>
             money(p.data?.amount_cents ?? null, p.data?.currency ?? 'USD'),
         },
-        { field: 'status', headerName: 'Status', width: 110, cellRenderer: StatusCell },
-        {
-          field: 'days_overdue',
-          headerName: 'Overdue',
-          width: 100,
-          valueFormatter: (p: { value?: number }) => (p.value ? `${p.value}d` : '—'),
-        },
-        { field: 'risk', headerName: 'Risk', width: 100, cellRenderer: RiskCell },
+        { field: 'status', headerName: 'Status', width: 110, cellRenderer: StatusCell, enableCellChangeFlash: true },
+        { field: 'days_overdue', headerName: 'Overdue', width: 130, cellRenderer: OverdueCell, cellRendererSelector: blankWhenPinned },
+        { field: 'pay_url', headerName: 'PayPal', width: 130, cellRenderer: PayPalCell, sortable: false, cellRendererSelector: blankWhenPinned },
+        { field: 'risk', headerName: 'Risk', width: 112, cellRenderer: RiskCell },
         {
           field: 'shipped',
           headerName: 'Shipped',
           width: 100,
+          cellRendererSelector: blankWhenPinned,
           valueFormatter: (p: { value?: boolean }) => (p.value ? 'Yes' : 'No'),
         },
         {
           field: 'tracking_number',
           headerName: 'Tracking',
           width: 160,
-          valueFormatter: (p: { value?: string | null }) => p.value || '—',
+          valueFormatter: (p: { value?: string | null; node?: { rowPinned?: string | null } | null }) =>
+            p.node?.rowPinned ? '' : p.value || '—',
           cellClass: 'cell-mono',
         },
         {
           field: 'created_at',
           headerName: 'Created',
-          width: 110,
+          width: 124,
           valueFormatter: (p: { value?: string }) => (p.value ? relativeTime(p.value) : ''),
         },
       ] as ColDef<Invoice>[],
@@ -136,14 +169,24 @@ export default function Invoices() {
 
         {rows.length > 0 && (
           <>
-            <div className="ag-theme-alpine" style={{ height: 360, width: '100%', marginBottom: '1rem' }}>
+            <div className="grid-toolbar">
+              <input className="input" style={{ width: 240 }} placeholder="Search invoices…" value={quick} onChange={(e) => setQuick(e.target.value)} />
+              <button type="button" className="btn btn--ghost btn--sm grid-toolbar__end"
+                onClick={() => grid.current?.api.exportDataAsCsv({ fileName: 'aegisfleet-invoices.csv' })}>
+                Export CSV
+              </button>
+            </div>
+            <div className="ag-theme-alpine aegis-grid" style={{ height: 380, width: '100%', marginBottom: '1rem' }}>
               <AgGridReact<Invoice>
+                ref={grid}
                 rowData={rows}
+                pinnedBottomRowData={totals}
+                quickFilterText={quick}
                 columnDefs={colDefs}
                 defaultColDef={defaultColDef}
                 getRowId={(p) => p.data.id}
                 onRowClicked={(e) => {
-                  if (e.data && !e.data.shipped) setShipId(e.data.id)
+                  if (e.data && !e.data.shipped && e.rowPinned == null) setShipId(e.data.id)
                 }}
                 animateRows
                 suppressCellFocus
