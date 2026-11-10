@@ -253,6 +253,10 @@ docs/            evals, submission text, video script
 
 <div align="center">
 
-Made by **SKJ**, **A** and **B** · [MIT License](LICENSE)
+| [<img src="https://github.com/Shivoo29.png" width="64"><br>**Shivoo29**](https://github.com/Shivoo29) | [<img src="https://github.com/A-Chronicle.png" width="64"><br>**A-Chronicle**](https://github.com/A-Chronicle) | [<img src="https://github.com/srishtiraghava.png" width="64"><br>**srishtiraghava**](https://github.com/srishtiraghava) |
+|:---:|:---:|:---:|
+| Backend, gateway, PayPal, MCP | AI agents and evals | Console, design, demo video |
+
+[MIT License](LICENSE)
 
 </div>
