@@ -1,0 +1,42 @@
+{
+  "type": "invoice.overdue",
+  "subject_id": "INV-4010",
+  "invoice": {
+    "invoice_id": "INV-4010",
+    "buyer_email": "jane.doe@example.com",
+    "amount_cents": 7500,
+    "currency": "USD",
+    "due_date": "2026-10-10",
+    "days_overdue": 30
+  },
+  "average_invoice_cents": 8000,
+  "client_history": {"total_invoices": 2, "late_invoices": 0},
+  "reminders_sent": 0,
+  "ledger_seed": [
+    {
+      "kind": "event",
+      "payload": {
+        "type": "invoice.sent",
+        "verified": true,
+        "invoice_id": "INV-4010",
+        "amount_cents": 7500,
+        "currency": "USD",
+        "due_date": "2026-10-10"
+      }
+    },
+    {
+      "kind": "event",
+      "payload": {
+        "type": "payment.captured",
+        "verified": true,
+        "invoice_id": "INV-4010",
+        "amount_cents": 7500,
+        "currency": "USD",
+        "paid_at": "2026-10-09"
+      }
+    }
+  ],
+  "expected_risk": "low",
+  "expected_tone": "friendly",
+  "expected_action": "wait"
+}

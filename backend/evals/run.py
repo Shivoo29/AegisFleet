@@ -1,4 +1,4 @@
-"""Offline eval harness: python -m evals.run [--agent sentinel|defender|all] [--reset]."""
+"""Offline eval harness: python -m evals.run [--agent sentinel|defender|collector|all] [--reset]."""
 from __future__ import annotations
 
 import argparse
@@ -14,6 +14,7 @@ if __package__ in (None, ""):
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from app.agents.base import AgentContext
+from app.agents.collector import handle as collector_handle
 from app.agents.defender import handle as defender_handle
 from app.agents.sentinel import handle as sentinel_handle
 from app.db import conn
@@ -23,6 +24,7 @@ from app.models import Event
 ROOT = Path(__file__).resolve().parents[2]
 EMAILS = ROOT / "fixtures" / "emails"
 DISPUTES = ROOT / "fixtures" / "disputes"
+INVOICES = ROOT / "fixtures" / "invoices"
 
 
 def _now() -> datetime:
@@ -32,7 +34,10 @@ def _now() -> datetime:
 def _reset() -> None:
     with conn() as c:
         with c.cursor() as cur:
-            cur.execute("TRUNCATE ledger, agent_runs RESTART IDENTITY CASCADE")
+            cur.execute(
+                "TRUNCATE ledger, agent_runs, budgets, approvals, events, invoices, shipments "
+                "RESTART IDENTITY CASCADE"
+            )
         c.commit()
 
 
@@ -196,10 +201,85 @@ def run_defender(pause: float = 0.0) -> int:
     return 0 if correct == n and class_correct == len(classified) and missing == 0 and invalid == 0 else 1
 
 
+def run_collector(pause: float = 0.0) -> int:
+    results = []
+    for path in sorted(INVOICES.glob("*.json")):
+        data = json.loads(path.read_text(encoding="utf-8"))
+        invoice = data.get("invoice") or {}
+        subject_id = str(data.get("subject_id") or invoice.get("invoice_id") or path.stem)
+        _seed(path.stem, subject_id, data.get("ledger_seed", []))
+        ctx = AgentContext("collector")
+        started = time.perf_counter()
+        error = None
+        try:
+            plan = collector_handle(_event(data, subject_id, source="scheduler", verified=True), ctx)
+            predicted_risk = plan.risk
+            predicted_tone = plan.tone
+            predicted_action = plan.next_action
+        except Exception as exc:  # noqa: BLE001
+            error = f"{type(exc).__name__}: {exc}"
+            predicted_risk = predicted_tone = predicted_action = "error"
+        latency_ms = (time.perf_counter() - started) * 1000
+        invalid_llm = any("llm error" in step.get("summary", "") for step in ctx.steps)
+        results.append(
+            {
+                "fixture": path.name,
+                "expected_risk": data["expected_risk"],
+                "predicted_risk": predicted_risk,
+                "expected_tone": data["expected_tone"],
+                "predicted_tone": predicted_tone,
+                "expected_action": data["expected_action"],
+                "predicted_action": predicted_action,
+                "latency_ms": latency_ms,
+                "invalid_llm": invalid_llm,
+                "error": error,
+            }
+        )
+        if pause:
+            time.sleep(pause)
+
+    n = len(results)
+    risk_correct = sum(1 for r in results if r["predicted_risk"] == r["expected_risk"])
+    tone_correct = sum(1 for r in results if r["predicted_tone"] == r["expected_tone"])
+    action_correct = sum(1 for r in results if r["predicted_action"] == r["expected_action"])
+    invalid = sum(1 for r in results if r["invalid_llm"])
+    avg_latency = statistics.mean(r["latency_ms"] for r in results) if results else 0.0
+
+    print(
+        f"{'agent':<10}{'n':>4}{'risk_acc':>10}{'tone_acc':>10}{'action_acc':>12}"
+        f"{'invalid_json':>14}{'avg_latency_ms':>16}"
+    )
+    print(
+        f"{'collector':<10}{n:>4}{risk_correct / n * 100:>9.1f}%{tone_correct / n * 100:>9.1f}%"
+        f"{action_correct / n * 100:>11.1f}%{invalid / n * 100:>13.1f}%{avg_latency:>16.1f}"
+    )
+
+    for result in results:
+        if result["predicted_risk"] != result["expected_risk"]:
+            print(
+                f"  FAIL {result['fixture']}: risk expected={result['expected_risk']} "
+                f"predicted={result['predicted_risk']}"
+            )
+        if result["predicted_tone"] != result["expected_tone"]:
+            print(
+                f"  FAIL {result['fixture']}: tone expected={result['expected_tone']} "
+                f"predicted={result['predicted_tone']}"
+            )
+        if result["predicted_action"] != result["expected_action"]:
+            print(
+                f"  FAIL {result['fixture']}: action expected={result['expected_action']} "
+                f"predicted={result['predicted_action']}"
+            )
+        if result["error"]:
+            print(f"  ERROR {result['fixture']}: {result['error']}")
+
+    return 0 if risk_correct == n and tone_correct == n and action_correct == n and invalid == 0 else 1
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description="AegisFleet offline evals")
-    parser.add_argument("--agent", choices=["sentinel", "defender", "all"], default="all")
-    parser.add_argument("--reset", action="store_true", help="truncate ledger and agent_runs first")
+    parser.add_argument("--agent", choices=["sentinel", "defender", "collector", "all"], default="all")
+    parser.add_argument("--reset", action="store_true", help="truncate ledger, runs, budgets and demo tables first")
     parser.add_argument("--pause", type=float, default=0.0, help="seconds between fixtures")
     args = parser.parse_args()
 
@@ -209,7 +289,9 @@ def main() -> int:
         return run_sentinel(args.pause)
     if args.agent == "defender":
         return run_defender(args.pause)
-    return max(run_sentinel(args.pause), run_defender(args.pause))
+    if args.agent == "collector":
+        return run_collector(args.pause)
+    return max(run_sentinel(args.pause), run_defender(args.pause), run_collector(args.pause))
 
 
 if __name__ == "__main__":
