@@ -87,6 +87,17 @@ AegisFleet is an MCP server at `https://aegisfleet.solvor.co.in/mcp` (streamable
 | Antigravity / Gemini CLI | `serverUrl` / `httpUrl` in the MCP config |
 | Cursor / Windsurf / VS Code / Codex | `url` in the MCP config |
 
+Claude Code, from a terminal:
+
+```bash
+# with the link from the Demo tab
+claude mcp add --transport http aegisfleet "https://aegisfleet.solvor.co.in/mcp?token=<your-token>"
+
+# or with your console login
+claude mcp add --transport http aegisfleet https://aegisfleet.solvor.co.in/mcp \
+  --header "Authorization: Basic $(printf 'judge:<password>' | base64)"
+```
+
 Then try: *"Invoice a buyer $150 for a silver bangle."* After it's paid: *"It arrived bent, refund it."*
 
 | Tool | Guardrail |
