@@ -272,6 +272,9 @@ def invoices() -> list:
         "SELECT subject_id, min(created_at) AS created_at FROM ledger WHERE kind='event' "
         "AND payload->>'verified'='true' AND payload->>'type' IN ('payment.captured','invoice.paid') "
         "GROUP BY subject_id")}
+    refunded = {r["subject_id"] for r in _rows(
+        "SELECT DISTINCT subject_id FROM ledger WHERE kind='event' AND payload->>'verified'='true' "
+        "AND payload->>'type'='payment.refunded'")}
     ships = {r["id"]: r["data"] for r in _rows("SELECT id, data FROM shipments")}
     today = datetime.now(timezone.utc).date()
     out = []
@@ -283,7 +286,7 @@ def invoices() -> list:
         risk = "low" if inv in paid else "high" if late > 14 else "medium" if late else "low"
         out.append({"id": inv, "buyer_email": d.get("buyer_email"), "amount_cents": d.get("amount_cents"),
                     "currency": d.get("currency", "USD"),
-                    "status": "paid" if inv in paid else "overdue" if late else "sent",
+                    "status": "refunded" if inv in refunded else "paid" if inv in paid else "overdue" if late else "sent",
                     "days_overdue": late, "risk": risk, "shipped": inv in ships,
                     "tracking_number": (ships.get(inv) or {}).get("tracking_number"),
                     "created_at": d.get("created_at"), "paid_at": paid.get(inv), "pay_url": d.get("pay_url")})

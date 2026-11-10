@@ -1,16 +1,28 @@
 """FastAPI app (M8/M18)."""
 import os
+from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.responses import RedirectResponse
 from fastapi.staticfiles import StaticFiles
+from starlette.routing import Route
 
 from app.api import router as api_router
 from app.demo import router as demo_router
 from app.paypal.webhooks import router as webhook_router
 from app.db import init_schema
+from app import mcp_server
+
+
+@asynccontextmanager
+async def _lifespan(_app):
+    init_schema()  # fail loudly if DB is down
+    async with mcp_server.running():
+        yield
+
 
 app = FastAPI(
+    lifespan=_lifespan,
     docs_url="/swagger",  # /docs is the APIMatic portal
     generate_unique_id_function=lambda r: r.name,  # operationIds become SDK method names
     title="AegisFleet",
@@ -29,11 +41,6 @@ app = FastAPI(
         {"name": "webhooks", "description": "PayPal webhook receiver; signatures are verified with PayPal before routing."},
     ],
 )
-
-
-@app.on_event("startup")
-def _startup() -> None:
-    init_schema()  # fail loudly if DB is down
 
 
 def _openapi() -> dict:
@@ -57,8 +64,13 @@ async def healthz() -> dict:
     return {"ok": True}
 
 
+# MCP endpoint for outside AI agents (not in the OpenAPI spec; it speaks JSON-RPC).
+app.router.routes.append(Route("/mcp", endpoint=mcp_server.endpoint, methods=["GET", "POST", "DELETE"]))
+
 _root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 _portal = os.path.join(_root, "apimatic", "portal")
+
+
 @app.get("/docs", include_in_schema=False)
 def _docs_slash() -> RedirectResponse:
     return RedirectResponse("/docs/")

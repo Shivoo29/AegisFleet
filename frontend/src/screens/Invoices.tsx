@@ -27,7 +27,7 @@ type Invoice = {
 function StatusCell(props: ICellRendererParams<Invoice>) {
   const s = props.value as string
   const cls =
-    s === 'paid' ? 'badge--green' : s === 'overdue' ? 'badge--red' : 'badge--amber'
+    s === 'paid' ? 'badge--green' : s === 'overdue' ? 'badge--red' : s === 'refunded' ? 'badge--gray' : 'badge--amber'
   return <span className={`badge ${cls}`}>{s}</span>
 }
 
@@ -76,7 +76,7 @@ export default function Invoices() {
     const sum = (f: (i: Invoice) => boolean) => rows.filter(f).reduce((a, i) => a + (i.amount_cents || 0), 0)
     return [{
       id: `${rows.length} invoices`, buyer_email: `Collected ${money(sum((i) => i.status === 'paid'), 'USD')}`,
-      amount_cents: sum((i) => i.status !== 'paid'), currency: 'USD', status: 'owed', days_overdue: 0, risk: '',
+      amount_cents: sum((i) => i.status === 'sent' || i.status === 'overdue'), currency: 'USD', status: 'owed', days_overdue: 0, risk: '',
       shipped: false, tracking_number: null, created_at: '', paid_at: null,
     } as Invoice]
   }, [rows])

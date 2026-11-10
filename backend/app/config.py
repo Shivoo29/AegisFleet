@@ -27,6 +27,7 @@ class Settings(BaseSettings):
     nvidia_api_key: str = ""
     agents_enabled: list[str] = ["collector", "sentinel", "guardian", "defender"]
     approval_threshold_cents: int = 10000
+    external_agents_enabled: bool = True  # outside agents over MCP; the kill switch still stops them
     kill_switch: bool = False
     console_password: str = "dev"
     judge_password: str = ""  # empty = judge login disabled

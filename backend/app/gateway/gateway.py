@@ -64,7 +64,8 @@ def call(agent: str, tool: str, args: dict, reason: str) -> Decision:
                     "INSERT INTO approvals (id, agent, tool, args, reason, summary, amount_cents, currency, status) "
                     "VALUES (%s,%s,%s,%s,%s,%s,%s,%s,'pending')",
                     (approval_id, agent, tool, json.dumps(args), reason,
-                     f"{agent} wants to {tool}", args.get("amount_cents"), args.get("currency")),
+                     reason if agent == "external" else f"{agent} wants to {tool}",
+                     args.get("amount_cents"), args.get("currency")),
                 )
             c.commit()
         return _seal_decision("hold", "requires human approval", agent, tool, args, approval_id=approval_id)

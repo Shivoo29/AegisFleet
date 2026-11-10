@@ -135,7 +135,7 @@ class Invoice(BaseModel):
     buyer_email: str | None = None
     amount_cents: int | None = None
     currency: str
-    status: Literal["paid", "overdue", "sent"]
+    status: Literal["paid", "overdue", "sent", "refunded"]
     days_overdue: int
     risk: Literal["low", "medium", "high"]
     shipped: bool

@@ -82,6 +82,20 @@ class PayPalClient:
         return self._req("POST", f"/v2/invoicing/invoices/{args['invoice_id']}/payments",
                          json={"method": args.get("method", "OTHER"), "amount": _money(args), "note": args.get("note", "")})
 
+    def refund_invoice(self, args: dict) -> dict:
+        """Refund an invoice payment. Paid through PayPal: real money back via the capture.
+        Recorded as paid outside PayPal: record the refund on the invoice (PayPal marks it refunded)."""
+        inv = self.get_invoice({"invoice_id": args["invoice_id"]})
+        txs = (inv.get("payments") or {}).get("transactions") or []
+        via_paypal = [t for t in txs if t.get("type") != "EXTERNAL" and t.get("payment_id")]
+        if via_paypal:
+            out = self._req("POST", f"/v2/payments/captures/{via_paypal[0]['payment_id']}/refund",
+                            json={"amount": _money(args), "note_to_payer": args.get("note", "")[:255]})
+            return {"method": "paypal_capture_refund", **out}
+        out = self._req("POST", f"/v2/invoicing/invoices/{args['invoice_id']}/refunds", json={
+            "method": "BANK_TRANSFER", "refund_date": time.strftime("%Y-%m-%d"), "amount": _money(args)})
+        return {"method": "recorded_refund", **out}
+
     def send_invoice_reminder(self, args: dict) -> dict:
         return self._req("POST", f"/v2/invoicing/invoices/{args['invoice_id']}/remind",
                          json={"subject": args.get("subject", "Payment reminder"), "note": args.get("note", "")})

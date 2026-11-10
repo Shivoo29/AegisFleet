@@ -1155,3 +1155,10 @@ body::after {
 .timeline-host .b-grid-header .b-grid-header-text, .timeline-host .b-sch-header-text { color: #e8f4f1; }
 .tl-role { font-size: 0.78rem; color: var(--text-muted, #5b6b67); }
 .tl-error .b-sch-event { background: #b42318 !important; }
+
+/* Demo: connect an outside AI agent over MCP */
+.connect-agent { margin-bottom: 1.25rem; border-color: var(--ink, #0b3530); display: grid; gap: 0.6rem; }
+.connect-agent__cmd {
+  margin: 0; padding: 0.75rem 0.9rem; border-radius: 10px; background: var(--ink, #0b3530); color: #e8f4f1;
+  font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 0.78rem; white-space: pre-wrap; word-break: break-all;
+}

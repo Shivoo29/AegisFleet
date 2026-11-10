@@ -15,6 +15,7 @@ log = logging.getLogger("aegis.webhooks")
 # PayPal event_type -> our EventType. Anything else is acknowledged and ignored.
 TYPES = {
     "INVOICING.INVOICE.PAID": "invoice.paid",
+    "INVOICING.INVOICE.REFUNDED": "payment.refunded",
     "PAYMENT.CAPTURE.COMPLETED": "payment.captured",
     "PAYMENT.CAPTURE.REFUNDED": "payment.refunded",
     "CUSTOMER.DISPUTE.CREATED": "dispute.created",
@@ -41,7 +42,9 @@ def normalize(body: dict) -> dict:
         subject = r.get("dispute_id")
     elif kind.startswith("INVOICING.INVOICE"):
         inv = r.get("invoice") or r
-        amount, ccy = _cents((inv.get("payments") or {}).get("paid_amount") or inv.get("amount"))
+        money = ((inv.get("refunds") or {}).get("refund_amount") if kind.endswith("REFUNDED")
+                 else (inv.get("payments") or {}).get("paid_amount")) or inv.get("amount")
+        amount, ccy = _cents(money)
         invoice_id = (inv.get("detail") or {}).get("invoice_number") or inv.get("id")
         subject = invoice_id
     else:  # PAYMENT.CAPTURE.*: invoice_id is the merchant invoice number set on the order

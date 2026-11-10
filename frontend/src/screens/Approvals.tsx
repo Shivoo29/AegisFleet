@@ -97,7 +97,7 @@ export default function Approvals() {
                     )}
                   </div>
 
-                  {reason ? <p className="list-card__body">{reason}</p> : null}
+                  {reason && reason !== summary ? <p className="list-card__body">{reason}</p> : null}
 
                   <textarea
                     className="textarea"

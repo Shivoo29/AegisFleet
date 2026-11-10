@@ -1781,7 +1781,8 @@
             "enum": [
               "paid",
               "overdue",
-              "sent"
+              "sent",
+              "refunded"
             ],
             "description": "Current status"
           },

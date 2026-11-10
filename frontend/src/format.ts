@@ -36,6 +36,7 @@ export function agentLabel(agent: string): string {
     sentinel: 'Sentinel',
     guardian: 'Guardian',
     defender: 'Defender',
+    external: 'Outside AI agent (MCP)',
   }
   return map[agent.toLowerCase()] ?? agent
 }

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { get, post } from '../api'
 
 type Beat = {
@@ -59,6 +59,41 @@ const BEATS: Beat[] = [
   },
 ]
 
+/** Lets a judge plug their own AI agent (Claude Code) into the shop. The password never leaves the page. */
+function ConnectAgent() {
+  const [user, setUser] = useState('judge')
+  const [pw, setPw] = useState('')
+  const [copied, setCopied] = useState(false)
+  useEffect(() => {
+    get<{ user: string }>('/api/me').then((m) => setUser(m.user)).catch(() => undefined)
+  }, [])
+  const url = `${window.location.origin}/mcp`
+  const auth = pw ? btoa(`${user}:${pw}`) : '<type your password above>'
+  const cmd = `claude mcp add --transport http aegisfleet ${url} --header "Authorization: Basic ${auth}"`
+  return (
+    <article className="list-card connect-agent" data-tour="connect-agent">
+      <h3 className="list-card__title">Connect your own AI agent</h3>
+      <p className="list-card__meta">
+        AegisFleet is also an MCP server. Plug Claude Code into it and let Claude bill and refund on PayPal. It goes
+        through the same gateway: refunds of $100 or more land in Approvals for you, and every call is sealed in the Ledger.
+      </p>
+      <label className="label" htmlFor="mcp-pw">Your console password (stays in this browser)</label>
+      <input id="mcp-pw" className="input" type="password" value={pw} onChange={(e) => setPw(e.target.value)}
+        autoComplete="current-password" style={{ maxWidth: 320 }} />
+      <pre className="connect-agent__cmd">{cmd}</pre>
+      <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
+        <button type="button" className="btn btn--secondary btn--sm" disabled={!pw}
+          onClick={() => navigator.clipboard.writeText(cmd).then(() => setCopied(true))}>
+          {copied ? 'Copied' : 'Copy command'}
+        </button>
+        <span className="list-card__meta">
+          Then ask Claude: “Invoice a buyer $600 for a silver necklace.” After it's paid: “Refund it, it arrived broken.”
+        </span>
+      </div>
+    </article>
+  )
+}
+
 export default function Demo() {
   const [busyId, setBusyId] = useState<string | null>(null)
   const [log, setLog] = useState<{ id: string; ok: boolean; message: string; link?: string }[]>([])
@@ -116,6 +151,7 @@ export default function Demo() {
       </div>
 
       <div className="screen__body">
+        <ConnectAgent />
         <div className="list" style={{ marginBottom: '1.25rem' }}>
           {BEATS.map((beat) => (
             <article key={beat.id} className="list-card">
