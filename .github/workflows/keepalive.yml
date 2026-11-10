@@ -1,0 +1,20 @@
+# Render's free web service sleeps after 15 minutes without traffic, and the first visit
+# after that waits ~50 s. Pinging /healthz every 5 minutes keeps it awake for judges.
+# ponytail: GitHub may delay scheduled runs by a few minutes; switch to UptimeRobot or a
+# paid Render instance if a cold start is ever seen.
+name: keep-alive
+
+on:
+  schedule:
+    - cron: "*/5 * * * *"
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Ping /healthz
+        run: curl -fsS --max-time 90 --retry 2 https://aegisfleet.solvor.co.in/healthz
