@@ -103,6 +103,7 @@ components:
             - paid
             - overdue
             - sent
+            - refunded
           description: Current status
         days_overdue:
           type: integer

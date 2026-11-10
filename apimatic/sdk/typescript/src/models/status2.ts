@@ -6,6 +6,7 @@ export const Status2 = {
   Paid: "paid",
   Overdue: "overdue",
   Sent: "sent",
+  Refunded: "refunded",
 } as const;
 export type Status2 = (typeof Status2)[keyof typeof Status2] | (string & {});
 

@@ -25,6 +25,8 @@ import { ledgerEntrySchema, type LedgerEntry } from "../models/ledger-entry.js";
 import { loginBodySchema, type LoginBody } from "../models/login-body.js";
 import { meSchema, type Me } from "../models/me.js";
 import { okSchema, type Ok } from "../models/ok.js";
+import { planMoveSchema, type PlanMove } from "../models/plan-move.js";
+import { planSchema, type Plan } from "../models/plan.js";
 import { shipmentBodySchema, type ShipmentBody } from "../models/shipment-body.js";
 import { shipmentResultSchema, type ShipmentResult } from "../models/shipment-result.js";
 import { summarySchema, type Summary } from "../models/summary.js";
@@ -518,6 +520,114 @@ export class Console {
   }
 
   /**
+   * Plans Cancel
+   *
+   * @remarks
+   * Seller cancels a planned action. Sealed in the ledger.
+   *
+   * @returns OK
+   *
+   * @throws {@link Console.PlansCancelError} when the API answers with an error status — narrow on
+   * `err.payload.kind`
+   *
+   * @throws {@link AegisFleetError} when no usable response was produced: a connection failure, a
+   * timeout, a body that would not decode, a value that would not encode, or a credential that
+   * could not be obtained
+   */
+  plansCancel(
+    request: Console.PlansCancelRequest,
+    options?: RequestOptions,
+  ): ApiPromise<Ok, Console.PlansCancelError> {
+    return this.#rawClient.execute(
+      {
+        method: "POST",
+        urlTemplate: this.#servers.default("/api/plans/{plan_id}/cancel"),
+        auth: this.#auth.httpBasic,
+        pathParams: [{ name: "plan_id", value: request.planId, schema: s.string() }],
+        query: [],
+        headers: [{ name: "Idempotency-Key", value: uuid(), schema: s.string() }],
+        body: { kind: "empty" },
+      },
+      {
+        success: { kind: "json", schema: okSchema },
+        errorFactory: Console.PlansCancelError,
+      },
+      options,
+    );
+  }
+
+  /**
+   * Plans List
+   *
+   * @remarks
+   * What the agents have scheduled: planned, done, held, blocked and cancelled actions.
+   *
+   * @returns OK
+   *
+   * @throws {@link Console.PlansListError} when the API answers with an error status — narrow on
+   * `err.payload.kind`
+   *
+   * @throws {@link AegisFleetError} when no usable response was produced: a connection failure, a
+   * timeout, a body that would not decode, a value that would not encode, or a credential that
+   * could not be obtained
+   */
+  plansList(options?: RequestOptions): ApiPromise<Plan[], Console.PlansListError> {
+    return this.#rawClient.execute(
+      {
+        method: "GET",
+        urlTemplate: this.#servers.default("/api/plans"),
+        auth: this.#auth.httpBasic,
+        pathParams: [],
+        query: [],
+        headers: [],
+        body: { kind: "empty" },
+      },
+      {
+        success: { kind: "json", schema: s.array(s.lazy(() => planSchema)) },
+        errorFactory: Console.PlansListError,
+      },
+      options,
+    );
+  }
+
+  /**
+   * Plans Move
+   *
+   * @remarks
+   * Seller moves a planned action to a new time (drag on the Timeline). Sealed in the ledger.
+   *
+   * @returns OK
+   *
+   * @throws {@link Console.PlansMoveError} when the API answers with an error status — narrow on
+   * `err.payload.kind`
+   *
+   * @throws {@link AegisFleetError} when no usable response was produced: a connection failure, a
+   * timeout, a body that would not decode, a value that would not encode, or a credential that
+   * could not be obtained
+   */
+  plansMove(
+    request: Console.PlansMoveRequest,
+    options?: RequestOptions,
+  ): ApiPromise<Plan, Console.PlansMoveError> {
+    return this.#rawClient.execute(
+      {
+        method: "PATCH",
+        urlTemplate: this.#servers.default("/api/plans/{plan_id}"),
+        auth: this.#auth.httpBasic,
+        pathParams: [{ name: "plan_id", value: request.planId, schema: s.string() }],
+        query: [],
+        headers: [{ name: "Idempotency-Key", value: uuid(), schema: s.string() }],
+        body: { kind: "json", value: request.body, schema: planMoveSchema },
+      },
+      {
+        success: { kind: "json", schema: planSchema },
+        errorFactory: Console.PlansMoveError,
+      },
+      options,
+    );
+  }
+
+  /**
    * Post Killswitch
    *
    * @remarks
@@ -827,6 +937,53 @@ export namespace Console {
 
     static readonly errors: ErrorDecoders<MeError> = [
       { on: 401, kind: "error401", decode: { kind: "empty" } },
+    ];
+  }
+
+  export type PlansCancelRequest = {
+    /** plan_id */
+    planId: string;
+  };
+
+  export class PlansCancelError extends ApiError {
+    declare readonly payload:
+      | Declared<"error401", undefined>
+      | Declared<"error404", undefined>
+      | Declared<"httpValidationError", HttpValidationError>
+      | Undeclared;
+
+    static readonly errors: ErrorDecoders<PlansCancelError> = [
+      { on: 401, kind: "error401", decode: { kind: "empty" } },
+      { on: 404, kind: "error404", decode: { kind: "empty" } },
+      { on: 422, kind: "httpValidationError", decode: { kind: "json", schema: httpValidationErrorSchema } },
+    ];
+  }
+
+  export class PlansListError extends ApiError {
+    declare readonly payload: Declared<"error401", undefined> | Undeclared;
+
+    static readonly errors: ErrorDecoders<PlansListError> = [
+      { on: 401, kind: "error401", decode: { kind: "empty" } },
+    ];
+  }
+
+  export type PlansMoveRequest = {
+    /** plan_id */
+    planId: string;
+    body: PlanMove;
+  };
+
+  export class PlansMoveError extends ApiError {
+    declare readonly payload:
+      | Declared<"error401", undefined>
+      | Declared<"error404", undefined>
+      | Declared<"httpValidationError", HttpValidationError>
+      | Undeclared;
+
+    static readonly errors: ErrorDecoders<PlansMoveError> = [
+      { on: 401, kind: "error401", decode: { kind: "empty" } },
+      { on: 404, kind: "error404", decode: { kind: "empty" } },
+      { on: 422, kind: "httpValidationError", decode: { kind: "json", schema: httpValidationErrorSchema } },
     ];
   }
 

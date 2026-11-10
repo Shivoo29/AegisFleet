@@ -1078,6 +1078,264 @@ if (result.ok) {
 </details>
 
 <details>
+<summary><code>plansCancel(request: Console.PlansCancelRequest, options?: RequestOptions): ApiPromise&lt;Ok, Console.PlansCancelError&gt;</code></summary>
+
+<dl>
+<dd>
+
+### Description
+
+<dl>
+<dd>
+
+Seller cancels a planned action. Sealed in the ledger.
+
+</dd>
+</dl>
+
+### Direct Usage
+
+<dl>
+<dd>
+
+```ts
+try {
+  const response = await client.console.plansCancel({ planId: "some example string" });
+  // TODO: Handle 'response' of type Ok
+} catch (err) {
+  // TODO: Handle 'err' of type Console.PlansCancelError, discriminated with 'err.payload.kind'
+}
+```
+
+</dd>
+</dl>
+
+### Usage as ApiResult
+
+<dl>
+<dd>
+
+```ts
+const result = await client.console.plansCancel({ planId: "some example string" }).asApiResult();
+// TODO: Use 'result.status' and 'result.headers' to read the raw response status and headers
+if (result.ok) {
+  // TODO: Use 'result.value' of type Ok
+} else {
+  // TODO: Handle 'result', discriminated with 'result.payload.kind'
+}
+```
+
+</dd>
+</dl>
+
+### Parameters
+
+<dl>
+<dd>
+
+| Name | Type | Description |
+| --- | --- | --- |
+| <code>planId</code> | <code>string</code> | plan_id |
+
+</dd>
+</dl>
+
+### Response
+
+<dl>
+<dd>
+
+**Direct**: `await client.console.plansCancel(request)`
+
+- **OnSuccess**: <code>[Ok](src/models/ok.ts)</code>
+- **OnError**: throws <code>[Console.PlansCancelError](src/resources/console.ts)</code>, with `err.payload` discriminated on `kind`
+
+**As ApiResult**: `await client.console.plansCancel(request).asApiResult()`
+
+- **OnSuccess**: <code>[ApiResult](src/core/api-promise.ts)&lt;Ok, Console.PlansCancelError&gt;</code>, with `result.value` of type <code>[Ok](src/models/ok.ts)</code>
+- **OnError**: `result.payload` discriminated on `kind`, with `result.message`
+
+**Thrown**: <code>[AegisFleetError](src/core/errors.ts)</code> on any operational failure — a caller abort and a programmer error stay outside the family and reach you raw
+
+</dd>
+</dl>
+
+</dd>
+</dl>
+
+</details>
+
+<details>
+<summary><code>plansList(options?: RequestOptions): ApiPromise&lt;Plan[], Console.PlansListError&gt;</code></summary>
+
+<dl>
+<dd>
+
+### Description
+
+<dl>
+<dd>
+
+What the agents have scheduled: planned, done, held, blocked and cancelled actions.
+
+</dd>
+</dl>
+
+### Direct Usage
+
+<dl>
+<dd>
+
+```ts
+try {
+  const response = await client.console.plansList();
+  // TODO: Handle 'response' of type Plan[]
+} catch (err) {
+  // TODO: Handle 'err' of type Console.PlansListError, discriminated with 'err.payload.kind'
+}
+```
+
+</dd>
+</dl>
+
+### Usage as ApiResult
+
+<dl>
+<dd>
+
+```ts
+const result = await client.console.plansList().asApiResult();
+// TODO: Use 'result.status' and 'result.headers' to read the raw response status and headers
+if (result.ok) {
+  // TODO: Use 'result.value' of type Plan[]
+} else {
+  // TODO: Handle 'result', discriminated with 'result.payload.kind'
+}
+```
+
+</dd>
+</dl>
+
+### Response
+
+<dl>
+<dd>
+
+**Direct**: `await client.console.plansList()`
+
+- **OnSuccess**: <code>[Plan](src/models/plan.ts)[]</code>
+- **OnError**: throws <code>[Console.PlansListError](src/resources/console.ts)</code>, with `err.payload` discriminated on `kind`
+
+**As ApiResult**: `await client.console.plansList().asApiResult()`
+
+- **OnSuccess**: <code>[ApiResult](src/core/api-promise.ts)&lt;Plan[], Console.PlansListError&gt;</code>, with `result.value` of type <code>[Plan](src/models/plan.ts)[]</code>
+- **OnError**: `result.payload` discriminated on `kind`, with `result.message`
+
+**Thrown**: <code>[AegisFleetError](src/core/errors.ts)</code> on any operational failure — a caller abort and a programmer error stay outside the family and reach you raw
+
+</dd>
+</dl>
+
+</dd>
+</dl>
+
+</details>
+
+<details>
+<summary><code>plansMove(request: Console.PlansMoveRequest, options?: RequestOptions): ApiPromise&lt;Plan, Console.PlansMoveError&gt;</code></summary>
+
+<dl>
+<dd>
+
+### Description
+
+<dl>
+<dd>
+
+Seller moves a planned action to a new time (drag on the Timeline). Sealed in the ledger.
+
+</dd>
+</dl>
+
+### Direct Usage
+
+<dl>
+<dd>
+
+```ts
+try {
+  const response = await client.console.plansMove({
+    planId: "some example string",
+    body: { dueAt: new Date(Date.UTC(2024, 0, 15, 9, 30, 0)) },
+  });
+  // TODO: Handle 'response' of type Plan
+} catch (err) {
+  // TODO: Handle 'err' of type Console.PlansMoveError, discriminated with 'err.payload.kind'
+}
+```
+
+</dd>
+</dl>
+
+### Usage as ApiResult
+
+<dl>
+<dd>
+
+```ts
+const result = await client.console
+  .plansMove({ planId: "some example string", body: { dueAt: new Date(Date.UTC(2024, 0, 15, 9, 30, 0)) } })
+  .asApiResult();
+// TODO: Use 'result.status' and 'result.headers' to read the raw response status and headers
+if (result.ok) {
+  // TODO: Use 'result.value' of type Plan
+} else {
+  // TODO: Handle 'result', discriminated with 'result.payload.kind'
+}
+```
+
+</dd>
+</dl>
+
+### Parameters
+
+<dl>
+<dd>
+
+| Name | Type | Description |
+| --- | --- | --- |
+| <code>planId</code> | <code>string</code> | plan_id |
+| <code>body</code> | <code>[PlanMove](src/models/plan-move.ts)</code> | - |
+
+</dd>
+</dl>
+
+### Response
+
+<dl>
+<dd>
+
+**Direct**: `await client.console.plansMove(request)`
+
+- **OnSuccess**: <code>[Plan](src/models/plan.ts)</code>
+- **OnError**: throws <code>[Console.PlansMoveError](src/resources/console.ts)</code>, with `err.payload` discriminated on `kind`
+
+**As ApiResult**: `await client.console.plansMove(request).asApiResult()`
+
+- **OnSuccess**: <code>[ApiResult](src/core/api-promise.ts)&lt;Plan, Console.PlansMoveError&gt;</code>, with `result.value` of type <code>[Plan](src/models/plan.ts)</code>
+- **OnError**: `result.payload` discriminated on `kind`, with `result.message`
+
+**Thrown**: <code>[AegisFleetError](src/core/errors.ts)</code> on any operational failure — a caller abort and a programmer error stay outside the family and reach you raw
+
+</dd>
+</dl>
+
+</dd>
+</dl>
+
+</details>
+
+<details>
 <summary><code>postKillswitch(request: Console.PostKillswitchRequest, options?: RequestOptions): ApiPromise&lt;KillSwitch, Console.PostKillswitchError&gt;</code></summary>
 
 <dl>

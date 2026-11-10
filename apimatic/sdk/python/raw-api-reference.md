@@ -1119,6 +1119,267 @@ Mapped in first-match order -- an earlier row wins over a later range that also 
 </details>
 
 <details>
+<summary><code>def plans_cancel(plan_id: str, *, request_options: RequestOptionsOrDict | None = None) -> ApiResult[Ok, PlansCancelErrorBody]</code></summary>
+
+<dl>
+<dd>
+
+### Description
+
+<dl>
+<dd>
+
+Seller cancels a planned action. Sealed in the ledger.
+
+</dd>
+</dl>
+
+### Usage
+
+<dl>
+<dd>
+
+**Sync**
+
+```python
+result = client.console.with_raw_response.plans_cancel("some example string")
+match result:
+    case Success(payload=payload):
+        ...  # TODO: Handle 'payload' of type Ok
+    case Failure(error=error):
+        ...  # TODO: Handle 'error' of type PlansCancelErrorBody
+```
+
+**Async**
+
+```python
+result = await async_client.console.with_raw_response.plans_cancel("some example string")
+match result:
+    case Success(payload=payload):
+        ...  # TODO: Handle 'payload' of type Ok
+    case Failure(error=error):
+        ...  # TODO: Handle 'error' of type PlansCancelErrorBody
+```
+
+</dd>
+</dl>
+
+### Parameters
+
+<dl>
+<dd>
+
+| Name | Type | Description |
+| --- | --- | --- |
+| <code>plan_id</code> | <code>str</code> | plan_id |
+| <code>request_options</code> | <code>[RequestOptionsOrDict](aegis_fleet/core/request_options.py) \| None</code> | Per-call overrides for this one request, such as a timeout, extra headers, or its retry count and statuses. |
+
+</dd>
+</dl>
+
+### Response
+
+<dl>
+<dd>
+
+**Returns**: <code>[ApiResult](aegis_fleet/core/results.py)&#91;[Ok](aegis_fleet/models/ok.py), [PlansCancelErrorBody](aegis_fleet/errors/plans_cancel_error.py)&#93;</code>
+
+**On `Success`**: `payload` is <code>[Ok](aegis_fleet/models/ok.py)</code> -- OK
+
+**On `Failure`**: `error` is <code>[PlansCancelErrorBody](aegis_fleet/errors/plans_cancel_error.py)</code>
+
+Mapped in first-match order -- an earlier row wins over a later range that also covers the status:
+
+| Status | `error` is |
+| --- | --- |
+| 401, 404 | <code>[RawError](aegis_fleet/core/results.py)</code> |
+| 422 | <code>[HttpValidationError](aegis_fleet/models/http_validation_error.py)</code> |
+| anything unmapped | <code>[RawError](aegis_fleet/core/results.py)</code> |
+
+</dd>
+</dl>
+
+</dd>
+</dl>
+
+</details>
+
+<details>
+<summary><code>def plans_list(*, request_options: RequestOptionsOrDict | None = None) -> ApiResult[list[Plan], PlansListErrorBody]</code></summary>
+
+<dl>
+<dd>
+
+### Description
+
+<dl>
+<dd>
+
+What the agents have scheduled: planned, done, held, blocked and cancelled actions.
+
+</dd>
+</dl>
+
+### Usage
+
+<dl>
+<dd>
+
+**Sync**
+
+```python
+result = client.console.with_raw_response.plans_list()
+match result:
+    case Success(payload=payload):
+        ...  # TODO: Handle 'payload' of type list[Plan]
+    case Failure(error=error):
+        ...  # TODO: Handle 'error' of type PlansListErrorBody
+```
+
+**Async**
+
+```python
+result = await async_client.console.with_raw_response.plans_list()
+match result:
+    case Success(payload=payload):
+        ...  # TODO: Handle 'payload' of type list[Plan]
+    case Failure(error=error):
+        ...  # TODO: Handle 'error' of type PlansListErrorBody
+```
+
+</dd>
+</dl>
+
+### Parameters
+
+<dl>
+<dd>
+
+| Name | Type | Description |
+| --- | --- | --- |
+| <code>request_options</code> | <code>[RequestOptionsOrDict](aegis_fleet/core/request_options.py) \| None</code> | Per-call overrides for this one request, such as a timeout, extra headers, or its retry count and statuses. |
+
+</dd>
+</dl>
+
+### Response
+
+<dl>
+<dd>
+
+**Returns**: <code>[ApiResult](aegis_fleet/core/results.py)&#91;list&#91;[Plan](aegis_fleet/models/plan.py)&#93;, [PlansListErrorBody](aegis_fleet/errors/plans_list_error.py)&#93;</code>
+
+**On `Success`**: `payload` is <code>list&#91;[Plan](aegis_fleet/models/plan.py)&#93;</code> -- OK
+
+**On `Failure`**: `error` is <code>[PlansListErrorBody](aegis_fleet/errors/plans_list_error.py)</code>
+
+Mapped in first-match order -- an earlier row wins over a later range that also covers the status:
+
+| Status | `error` is |
+| --- | --- |
+| 401 | <code>[RawError](aegis_fleet/core/results.py)</code> |
+| anything unmapped | <code>[RawError](aegis_fleet/core/results.py)</code> |
+
+</dd>
+</dl>
+
+</dd>
+</dl>
+
+</details>
+
+<details>
+<summary><code>def plans_move(plan_id: str, body: PlanMove | PlanMoveDict, *, request_options: RequestOptionsOrDict | None = None) -> ApiResult[Plan, PlansMoveErrorBody]</code></summary>
+
+<dl>
+<dd>
+
+### Description
+
+<dl>
+<dd>
+
+Seller moves a planned action to a new time (drag on the Timeline). Sealed in the ledger.
+
+</dd>
+</dl>
+
+### Usage
+
+<dl>
+<dd>
+
+**Sync**
+
+```python
+result = client.console.with_raw_response.plans_move(
+    "some example string", PlanMove(due_at=datetime(2024, 1, 15, 9, 30, 0, tzinfo=timezone.utc))
+)
+match result:
+    case Success(payload=payload):
+        ...  # TODO: Handle 'payload' of type Plan
+    case Failure(error=error):
+        ...  # TODO: Handle 'error' of type PlansMoveErrorBody
+```
+
+**Async**
+
+```python
+result = await async_client.console.with_raw_response.plans_move(
+    "some example string", PlanMove(due_at=datetime(2024, 1, 15, 9, 30, 0, tzinfo=timezone.utc))
+)
+match result:
+    case Success(payload=payload):
+        ...  # TODO: Handle 'payload' of type Plan
+    case Failure(error=error):
+        ...  # TODO: Handle 'error' of type PlansMoveErrorBody
+```
+
+</dd>
+</dl>
+
+### Parameters
+
+<dl>
+<dd>
+
+| Name | Type | Description |
+| --- | --- | --- |
+| <code>plan_id</code> | <code>str</code> | plan_id |
+| <code>body</code> | <code>[PlanMove](aegis_fleet/models/plan_move.py) \| [PlanMoveDict](aegis_fleet/models/plan_move.py)</code> | The request body. |
+| <code>request_options</code> | <code>[RequestOptionsOrDict](aegis_fleet/core/request_options.py) \| None</code> | Per-call overrides for this one request, such as a timeout, extra headers, or its retry count and statuses. |
+
+</dd>
+</dl>
+
+### Response
+
+<dl>
+<dd>
+
+**Returns**: <code>[ApiResult](aegis_fleet/core/results.py)&#91;[Plan](aegis_fleet/models/plan.py), [PlansMoveErrorBody](aegis_fleet/errors/plans_move_error.py)&#93;</code>
+
+**On `Success`**: `payload` is <code>[Plan](aegis_fleet/models/plan.py)</code> -- OK
+
+**On `Failure`**: `error` is <code>[PlansMoveErrorBody](aegis_fleet/errors/plans_move_error.py)</code>
+
+Mapped in first-match order -- an earlier row wins over a later range that also covers the status:
+
+| Status | `error` is |
+| --- | --- |
+| 401, 404 | <code>[RawError](aegis_fleet/core/results.py)</code> |
+| 422 | <code>[HttpValidationError](aegis_fleet/models/http_validation_error.py)</code> |
+| anything unmapped | <code>[RawError](aegis_fleet/core/results.py)</code> |
+
+</dd>
+</dl>
+
+</dd>
+</dl>
+
+</details>
+
+<details>
 <summary><code>def post_killswitch(body: KillSwitchBody | KillSwitchBodyDict, *, request_options: RequestOptionsOrDict | None = None) -> ApiResult[KillSwitch, PostKillswitchErrorBody]</code></summary>
 
 <dl>

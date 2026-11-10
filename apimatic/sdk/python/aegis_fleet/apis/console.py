@@ -28,6 +28,9 @@ from ..errors.ledger_verify_error import LedgerVerifyErrorBody, ledger_verify_er
 from ..errors.login_error import LoginErrorBody, login_error_mapper
 from ..errors.logout_error import LogoutErrorBody, logout_error_mapper
 from ..errors.me_error import MeErrorBody, me_error_mapper
+from ..errors.plans_cancel_error import PlansCancelErrorBody, plans_cancel_error_mapper
+from ..errors.plans_list_error import PlansListErrorBody, plans_list_error_mapper
+from ..errors.plans_move_error import PlansMoveErrorBody, plans_move_error_mapper
 from ..errors.post_killswitch_error import PostKillswitchErrorBody, post_killswitch_error_mapper
 from ..errors.runs_error import RunsErrorBody, runs_error_mapper
 from ..errors.shipments_error import ShipmentsErrorBody, shipments_error_mapper
@@ -50,6 +53,8 @@ from ..models.ledger_entry import LedgerEntry
 from ..models.login_body import LoginBody, LoginBodyDict
 from ..models.me import Me
 from ..models.ok import Ok
+from ..models.plan import Plan
+from ..models.plan_move import PlanMove, PlanMoveDict
 from ..models.shipment_body import ShipmentBody, ShipmentBodyDict
 from ..models.shipment_result import ShipmentResult
 from ..models.summary import Summary
@@ -283,6 +288,55 @@ class Console:
         Raises:
             ApiError: Login required: HTTP Basic or the session cookie ``error`` is ``RawError``."""
         return unwrap(self._with_raw_response.me(request_options=request_options))
+
+    def plans_cancel(self, plan_id: str, *, request_options: RequestOptionsOrDict | None = None) -> Ok:
+        """Seller cancels a planned action. Sealed in the ledger.
+
+        Args:
+            plan_id: plan_id
+            request_options: Per-call overrides for this one request, such as a timeout, extra headers, or its retry
+                count and statuses.
+
+        Returns:
+            OK
+
+        Raises:
+            ApiError: Login required: HTTP Basic or the session cookie No planned action with this id Validation Error
+                ``error`` is ``HttpValidationError | RawError``."""
+        return unwrap(self._with_raw_response.plans_cancel(plan_id, request_options=request_options))
+
+    def plans_list(self, *, request_options: RequestOptionsOrDict | None = None) -> list[Plan]:
+        """What the agents have scheduled: planned, done, held, blocked and cancelled actions.
+
+        Args:
+            request_options: Per-call overrides for this one request, such as a timeout, extra headers, or its retry
+                count and statuses.
+
+        Returns:
+            OK
+
+        Raises:
+            ApiError: Login required: HTTP Basic or the session cookie ``error`` is ``RawError``."""
+        return unwrap(self._with_raw_response.plans_list(request_options=request_options))
+
+    def plans_move(
+        self, plan_id: str, body: PlanMove | PlanMoveDict, *, request_options: RequestOptionsOrDict | None = None
+    ) -> Plan:
+        """Seller moves a planned action to a new time (drag on the Timeline). Sealed in the ledger.
+
+        Args:
+            plan_id: plan_id
+            body: The request body.
+            request_options: Per-call overrides for this one request, such as a timeout, extra headers, or its retry
+                count and statuses.
+
+        Returns:
+            OK
+
+        Raises:
+            ApiError: Login required: HTTP Basic or the session cookie No planned action with this id Validation Error
+                ``error`` is ``HttpValidationError | RawError``."""
+        return unwrap(self._with_raw_response.plans_move(plan_id, body, request_options=request_options))
 
     def post_killswitch(
         self, body: KillSwitchBody | KillSwitchBodyDict, *, request_options: RequestOptionsOrDict | None = None
@@ -588,6 +642,55 @@ class AsyncConsole:
         Raises:
             ApiError: Login required: HTTP Basic or the session cookie ``error`` is ``RawError``."""
         return unwrap(await self._with_raw_response.me(request_options=request_options))
+
+    async def plans_cancel(self, plan_id: str, *, request_options: RequestOptionsOrDict | None = None) -> Ok:
+        """Seller cancels a planned action. Sealed in the ledger.
+
+        Args:
+            plan_id: plan_id
+            request_options: Per-call overrides for this one request, such as a timeout, extra headers, or its retry
+                count and statuses.
+
+        Returns:
+            OK
+
+        Raises:
+            ApiError: Login required: HTTP Basic or the session cookie No planned action with this id Validation Error
+                ``error`` is ``HttpValidationError | RawError``."""
+        return unwrap(await self._with_raw_response.plans_cancel(plan_id, request_options=request_options))
+
+    async def plans_list(self, *, request_options: RequestOptionsOrDict | None = None) -> list[Plan]:
+        """What the agents have scheduled: planned, done, held, blocked and cancelled actions.
+
+        Args:
+            request_options: Per-call overrides for this one request, such as a timeout, extra headers, or its retry
+                count and statuses.
+
+        Returns:
+            OK
+
+        Raises:
+            ApiError: Login required: HTTP Basic or the session cookie ``error`` is ``RawError``."""
+        return unwrap(await self._with_raw_response.plans_list(request_options=request_options))
+
+    async def plans_move(
+        self, plan_id: str, body: PlanMove | PlanMoveDict, *, request_options: RequestOptionsOrDict | None = None
+    ) -> Plan:
+        """Seller moves a planned action to a new time (drag on the Timeline). Sealed in the ledger.
+
+        Args:
+            plan_id: plan_id
+            body: The request body.
+            request_options: Per-call overrides for this one request, such as a timeout, extra headers, or its retry
+                count and statuses.
+
+        Returns:
+            OK
+
+        Raises:
+            ApiError: Login required: HTTP Basic or the session cookie No planned action with this id Validation Error
+                ``error`` is ``HttpValidationError | RawError``."""
+        return unwrap(await self._with_raw_response.plans_move(plan_id, body, request_options=request_options))
 
     async def post_killswitch(
         self, body: KillSwitchBody | KillSwitchBodyDict, *, request_options: RequestOptionsOrDict | None = None
@@ -949,6 +1052,74 @@ class ConsoleWithRawResponse(SecuredRawResponse[RawClient, Server, AuthSchemes])
             auth_scheme=self._auth.http_basic,
             decoder=json_decoder[Me],
             error_mapper=me_error_mapper,
+            request_options=request_options,
+        )
+
+    def plans_cancel(
+        self, plan_id: str, *, request_options: RequestOptionsOrDict | None = None
+    ) -> ApiResult[Ok, PlansCancelErrorBody]:
+        """Seller cancels a planned action. Sealed in the ledger.
+
+        Args:
+            plan_id: plan_id
+            request_options: Per-call overrides for this one request, such as a timeout, extra headers, or its retry
+                count and statuses.
+
+        Returns:
+            An ``ApiResult`` holding the deserialized response or the error body."""
+        return self._client.execute(
+            http_method="POST",
+            url_template=self._server.default("/api/plans/{plan_id}/cancel"),
+            path_params=[param[str]("plan_id", plan_id)],
+            headers=[param[UUID]("Idempotency-Key", uuid4())],
+            auth_scheme=self._auth.http_basic,
+            decoder=json_decoder[Ok],
+            error_mapper=plans_cancel_error_mapper,
+            request_options=request_options,
+        )
+
+    def plans_list(
+        self, *, request_options: RequestOptionsOrDict | None = None
+    ) -> ApiResult[list[Plan], PlansListErrorBody]:
+        """What the agents have scheduled: planned, done, held, blocked and cancelled actions.
+
+        Args:
+            request_options: Per-call overrides for this one request, such as a timeout, extra headers, or its retry
+                count and statuses.
+
+        Returns:
+            An ``ApiResult`` holding the deserialized response or the error body."""
+        return self._client.execute(
+            http_method="GET",
+            url_template=self._server.default("/api/plans"),
+            auth_scheme=self._auth.http_basic,
+            decoder=json_decoder[list[Plan]],
+            error_mapper=plans_list_error_mapper,
+            request_options=request_options,
+        )
+
+    def plans_move(
+        self, plan_id: str, body: PlanMove | PlanMoveDict, *, request_options: RequestOptionsOrDict | None = None
+    ) -> ApiResult[Plan, PlansMoveErrorBody]:
+        """Seller moves a planned action to a new time (drag on the Timeline). Sealed in the ledger.
+
+        Args:
+            plan_id: plan_id
+            body: The request body.
+            request_options: Per-call overrides for this one request, such as a timeout, extra headers, or its retry
+                count and statuses.
+
+        Returns:
+            An ``ApiResult`` holding the deserialized response or the error body."""
+        return self._client.execute(
+            http_method="PATCH",
+            url_template=self._server.default("/api/plans/{plan_id}"),
+            path_params=[param[str]("plan_id", plan_id)],
+            headers=[param[UUID]("Idempotency-Key", uuid4())],
+            body=json_body[PlanMove | PlanMoveDict](body),
+            auth_scheme=self._auth.http_basic,
+            decoder=json_decoder[Plan],
+            error_mapper=plans_move_error_mapper,
             request_options=request_options,
         )
 
@@ -1328,6 +1499,74 @@ class AsyncConsoleWithRawResponse(SecuredRawResponse[AsyncRawClient, Server, Asy
             auth_scheme=self._auth.http_basic,
             decoder=async_json_decoder[Me],
             error_mapper=me_error_mapper,
+            request_options=request_options,
+        )
+
+    async def plans_cancel(
+        self, plan_id: str, *, request_options: RequestOptionsOrDict | None = None
+    ) -> ApiResult[Ok, PlansCancelErrorBody]:
+        """Seller cancels a planned action. Sealed in the ledger.
+
+        Args:
+            plan_id: plan_id
+            request_options: Per-call overrides for this one request, such as a timeout, extra headers, or its retry
+                count and statuses.
+
+        Returns:
+            An ``ApiResult`` holding the deserialized response or the error body."""
+        return await self._client.execute(
+            http_method="POST",
+            url_template=self._server.default("/api/plans/{plan_id}/cancel"),
+            path_params=[param[str]("plan_id", plan_id)],
+            headers=[param[UUID]("Idempotency-Key", uuid4())],
+            auth_scheme=self._auth.http_basic,
+            decoder=async_json_decoder[Ok],
+            error_mapper=plans_cancel_error_mapper,
+            request_options=request_options,
+        )
+
+    async def plans_list(
+        self, *, request_options: RequestOptionsOrDict | None = None
+    ) -> ApiResult[list[Plan], PlansListErrorBody]:
+        """What the agents have scheduled: planned, done, held, blocked and cancelled actions.
+
+        Args:
+            request_options: Per-call overrides for this one request, such as a timeout, extra headers, or its retry
+                count and statuses.
+
+        Returns:
+            An ``ApiResult`` holding the deserialized response or the error body."""
+        return await self._client.execute(
+            http_method="GET",
+            url_template=self._server.default("/api/plans"),
+            auth_scheme=self._auth.http_basic,
+            decoder=async_json_decoder[list[Plan]],
+            error_mapper=plans_list_error_mapper,
+            request_options=request_options,
+        )
+
+    async def plans_move(
+        self, plan_id: str, body: PlanMove | PlanMoveDict, *, request_options: RequestOptionsOrDict | None = None
+    ) -> ApiResult[Plan, PlansMoveErrorBody]:
+        """Seller moves a planned action to a new time (drag on the Timeline). Sealed in the ledger.
+
+        Args:
+            plan_id: plan_id
+            body: The request body.
+            request_options: Per-call overrides for this one request, such as a timeout, extra headers, or its retry
+                count and statuses.
+
+        Returns:
+            An ``ApiResult`` holding the deserialized response or the error body."""
+        return await self._client.execute(
+            http_method="PATCH",
+            url_template=self._server.default("/api/plans/{plan_id}"),
+            path_params=[param[str]("plan_id", plan_id)],
+            headers=[param[UUID]("Idempotency-Key", uuid4())],
+            body=json_body[PlanMove | PlanMoveDict](body),
+            auth_scheme=self._auth.http_basic,
+            decoder=async_json_decoder[Plan],
+            error_mapper=plans_move_error_mapper,
             request_options=request_options,
         )
 

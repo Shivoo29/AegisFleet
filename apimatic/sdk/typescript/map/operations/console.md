@@ -2,7 +2,7 @@
 
 # Console — operations
 
-Accessor: `client.console` · Source: `src/resources/console.ts` · 17 operations · Request and error types: namespace `Console`
+Accessor: `client.console` · Source: `src/resources/console.ts` · 20 operations · Request and error types: namespace `Console`
 
 **Type sources**: every type an operation names, with the file that declares it and the schema value exported beside it. Import every name from `aegis-fleet`; the `Source` path is where to **read** the shape, never what to import. `ApiError`, the runtime error family and the file vocabulary are excluded — see sdk-map.md.
 
@@ -243,6 +243,66 @@ Accessor: `client.console` · Source: `src/resources/console.ts` · 17 operation
 | Type | Schema value | Source |
 | --- | --- | --- |
 | `Me` | `meSchema` | `src/models/me.ts` |
+
+### plansCancel
+
+- **Signature**: `plansCancel(request: Console.PlansCancelRequest, options?: RequestOptions): ApiPromise<Ok, Console.PlansCancelError>`
+- **Wire**: `POST /api/plans/{plan_id}/cancel`
+- **Auth**: `httpBasic`
+- **Request body**: none — no `Content-Type` header is sent
+- **SDK-sent**: `header Idempotency-Key` (minted per call)
+- **Returns**: `Ok`
+- **Error**: `AegisFleetError` with `kind: "api"`, an instance of `Console.PlansCancelError` — **typed arms**, narrowed on `err.payload.kind`
+- **Error arms**: `"error401"` [401] no body · `"error404"` [404] no body · `"httpValidationError"` [422] `HttpValidationError` · `"undeclared"` [any other] `rawBody: ArrayBuffer`
+
+**Fields** — `Console.PlansCancelRequest` (1):
+
+| Field | Channel | Wire | Type | Req |
+| --- | --- | --- | --- | --- |
+| `planId` | `path` | `plan_id` | `string` | yes |
+
+| Type | Schema value | Source |
+| --- | --- | --- |
+| `Ok` | `okSchema` | `src/models/ok.ts` |
+| `HttpValidationError` | `httpValidationErrorSchema` | `src/models/http-validation-error.ts` |
+
+### plansList
+
+- **Signature**: `plansList(options?: RequestOptions): ApiPromise<Plan[], Console.PlansListError>`
+- **Wire**: `GET /api/plans`
+- **Auth**: `httpBasic`
+- **Request body**: none — no `Content-Type` header is sent
+- **Returns**: `Plan[]` — a bare `application/json` array; the success type *is* the array, not a wrapper model
+- **Error**: `AegisFleetError` with `kind: "api"`, an instance of `Console.PlansListError` — **typed arms**, narrowed on `err.payload.kind`
+- **Error arms**: `"error401"` [401] no body · `"undeclared"` [any other] `rawBody: ArrayBuffer`
+
+| Type | Schema value | Source |
+| --- | --- | --- |
+| `Plan` | `planSchema` | `src/models/plan.ts` |
+
+### plansMove
+
+- **Signature**: `plansMove(request: Console.PlansMoveRequest, options?: RequestOptions): ApiPromise<Plan, Console.PlansMoveError>`
+- **Wire**: `PATCH /api/plans/{plan_id}`
+- **Auth**: `httpBasic`
+- **Request body**: `application/json` — the `body` field
+- **SDK-sent**: `header Idempotency-Key` (minted per call)
+- **Returns**: `Plan`
+- **Error**: `AegisFleetError` with `kind: "api"`, an instance of `Console.PlansMoveError` — **typed arms**, narrowed on `err.payload.kind`
+- **Error arms**: `"error401"` [401] no body · `"error404"` [404] no body · `"httpValidationError"` [422] `HttpValidationError` · `"undeclared"` [any other] `rawBody: ArrayBuffer`
+
+**Fields** — `Console.PlansMoveRequest` (2):
+
+| Field | Channel | Wire | Type | Req |
+| --- | --- | --- | --- | --- |
+| `planId` | `path` | `plan_id` | `string` | yes |
+| `body` | `body` | — | `PlanMove` | yes |
+
+| Type | Schema value | Source |
+| --- | --- | --- |
+| `PlanMove` | `planMoveSchema` | `src/models/plan-move.ts` |
+| `Plan` | `planSchema` | `src/models/plan.ts` |
+| `HttpValidationError` | `httpValidationErrorSchema` | `src/models/http-validation-error.ts` |
 
 ### postKillswitch
 

@@ -11,6 +11,9 @@ from .ledger_verify_error import LedgerVerifyErrorBody, ledger_verify_error_mapp
 from .login_error import LoginErrorBody, login_error_mapper
 from .logout_error import LogoutErrorBody, logout_error_mapper
 from .me_error import MeErrorBody, me_error_mapper
+from .plans_cancel_error import PlansCancelErrorBody, plans_cancel_error_mapper
+from .plans_list_error import PlansListErrorBody, plans_list_error_mapper
+from .plans_move_error import PlansMoveErrorBody, plans_move_error_mapper
 from .post_killswitch_error import PostKillswitchErrorBody, post_killswitch_error_mapper
 from .runs_error import RunsErrorBody, runs_error_mapper
 from .shipments_error import ShipmentsErrorBody, shipments_error_mapper
@@ -30,6 +33,9 @@ __all__ = [
     "LoginErrorBody",
     "LogoutErrorBody",
     "MeErrorBody",
+    "PlansCancelErrorBody",
+    "PlansListErrorBody",
+    "PlansMoveErrorBody",
     "PostKillswitchErrorBody",
     "RunsErrorBody",
     "ShipmentsErrorBody",
@@ -47,6 +53,9 @@ __all__ = [
     "login_error_mapper",
     "logout_error_mapper",
     "me_error_mapper",
+    "plans_cancel_error_mapper",
+    "plans_list_error_mapper",
+    "plans_move_error_mapper",
     "post_killswitch_error_mapper",
     "runs_error_mapper",
     "shipments_error_mapper",

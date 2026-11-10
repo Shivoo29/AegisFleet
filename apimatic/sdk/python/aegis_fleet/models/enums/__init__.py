@@ -6,6 +6,7 @@ from .role import Role, RoleOrStr
 from .status import Status, StatusOrStr
 from .status1 import Status1, Status1OrStr
 from .status2 import Status2, Status2OrStr
+from .status3 import Status3, Status3OrStr
 
 __all__ = [
     "Action",
@@ -23,5 +24,7 @@ __all__ = [
     "Status1OrStr",
     "Status2",
     "Status2OrStr",
+    "Status3",
+    "Status3OrStr",
     "StatusOrStr",
 ]

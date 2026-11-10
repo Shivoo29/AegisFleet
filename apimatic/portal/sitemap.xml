@@ -4,6 +4,9 @@
     <loc>https://aegisfleet.solvor.co.in/docs/</loc>
   </url>
   <url>
+    <loc>https://aegisfleet.solvor.co.in/docs/mcp</loc>
+  </url>
+  <url>
     <loc>https://aegisfleet.solvor.co.in/docs/sdks/csharp</loc>
   </url>
   <url>
@@ -65,6 +68,15 @@
   </url>
   <url>
     <loc>https://aegisfleet.solvor.co.in/docs/api/openapi/console/health</loc>
+  </url>
+  <url>
+    <loc>https://aegisfleet.solvor.co.in/docs/api/openapi/console/plans_list</loc>
+  </url>
+  <url>
+    <loc>https://aegisfleet.solvor.co.in/docs/api/openapi/console/plans_move</loc>
+  </url>
+  <url>
+    <loc>https://aegisfleet.solvor.co.in/docs/api/openapi/console/plans_cancel</loc>
   </url>
   <url>
     <loc>https://aegisfleet.solvor.co.in/docs/api/openapi/demo/demo_status</loc>

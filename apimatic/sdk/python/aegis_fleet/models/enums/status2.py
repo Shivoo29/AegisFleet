@@ -10,6 +10,7 @@ class Status2(str, Enum):
     PAID = "paid"
     OVERDUE = "overdue"
     SENT = "sent"
+    REFUNDED = "refunded"
 
     __str__ = str.__str__
 

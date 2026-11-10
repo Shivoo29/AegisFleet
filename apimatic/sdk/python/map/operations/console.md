@@ -2,7 +2,7 @@
 
 # Console — operations
 
-Accessor: `client.console` · Source: `aegis_fleet/apis/console.py` · 17 operations
+Accessor: `client.console` · Source: `aegis_fleet/apis/console.py` · 20 operations
 
 Each `###` block is one operation and assumes `sdk-map.md` is loaded: blocks omit what its invariants table covers and are otherwise self-contained, so chunk at block level. Signatures are the sync parsed spelling; the async and raw spellings take the same parameters (see sdk-map.md). **Type sources** names the module declaring each type an operation mentions, so resolving a body, return or error payload is a lookup rather than a search; the runtime types `RawError` and `ApiResult` are excluded.
 
@@ -221,6 +221,59 @@ Each `###` block is one operation and assumes `sdk-map.md` is loaded: blocks omi
 | --- | --- |
 | `Me` | `aegis_fleet/models/me.py` |
 | `MeErrorBody` | `aegis_fleet/errors/me_error.py` |
+
+### client.console.plans_cancel
+
+- **Route**: `POST /api/plans/{plan_id}/cancel`
+- **Auth**: `http_basic`
+- **Signature**: `def plans_cancel(plan_id: str, *, request_options: RequestOptionsOrDict | None = None)`
+  - required, positional: `plan_id`
+- **Params**: `plan_id` — path
+- **Returns (parsed)**: `Ok`
+- **Returns (raw)**: `ApiResult[Ok, PlansCancelErrorBody]`
+- **Error**: `PlansCancelErrorBody` — **Case A (typed)**
+- **Error arms**: `HttpValidationError` [422] · `RawError` [401, 404, anything unmapped]
+
+| Type | Source |
+| --- | --- |
+| `Ok` | `aegis_fleet/models/ok.py` |
+| `PlansCancelErrorBody` | `aegis_fleet/errors/plans_cancel_error.py` |
+| `HttpValidationError` | `aegis_fleet/models/http_validation_error.py` |
+
+### client.console.plans_list
+
+- **Route**: `GET /api/plans`
+- **Auth**: `http_basic`
+- **Signature**: `def plans_list(*, request_options: RequestOptionsOrDict | None = None)`
+- **Returns (parsed)**: `list[Plan]`
+- **Returns (raw)**: `ApiResult[list[Plan], PlansListErrorBody]`
+- **Error**: `PlansListErrorBody` — **Case A (typed)**
+- **Error arms**: `RawError` [401, anything unmapped]
+
+| Type | Source |
+| --- | --- |
+| `Plan` | `aegis_fleet/models/plan.py` |
+| `PlansListErrorBody` | `aegis_fleet/errors/plans_list_error.py` |
+
+### client.console.plans_move
+
+- **Route**: `PATCH /api/plans/{plan_id}`
+- **Auth**: `http_basic`
+- **Signature**: `def plans_move(plan_id: str, body: PlanMove | PlanMoveDict, *, request_options: RequestOptionsOrDict | None = None)`
+  - required, positional: `plan_id`, `body`
+- **Params**: `plan_id` — path · `body` — JSON body
+- **Returns (parsed)**: `Plan`
+- **Returns (raw)**: `ApiResult[Plan, PlansMoveErrorBody]`
+- **Error**: `PlansMoveErrorBody` — **Case A (typed)**
+- **Error arms**: `HttpValidationError` [422] · `RawError` [401, 404, anything unmapped]
+
+| Type | Source |
+| --- | --- |
+| `PlanMove` | `aegis_fleet/models/plan_move.py` |
+| `PlanMoveDict` | `aegis_fleet/models/plan_move.py` |
+| `Plan` | `aegis_fleet/models/plan.py` |
+| `PlansMoveErrorBody` | `aegis_fleet/errors/plans_move_error.py` |
+| `HttpValidationError` | `aegis_fleet/models/http_validation_error.py` |
 
 ### client.console.post_killswitch
 

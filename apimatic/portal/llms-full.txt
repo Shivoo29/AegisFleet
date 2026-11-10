@@ -30,6 +30,39 @@ Every endpoint with SDK code samples and a live playground against the demo serv
 </Cards>
 
 
+# Connect an AI agent (MCP) (/docs/mcp)
+
+AegisFleet is also an MCP server, at `https://aegisfleet.solvor.co.in/mcp` (streamable HTTP). An outside agent
+gets eight tools, and every money tool goes through the same gateway as AegisFleet's own agents:
+
+| Tool | What it does | Guardrail |
+|---|---|---|
+| `create_invoice` | Issues a real PayPal sandbox invoice and returns its payment link | At most $5,000 |
+| `send_payment_reminder` | PayPal's reminder for an unpaid invoice | 2 per invoice per week |
+| `refund_payment` | Refunds the buyer of an invoice | Only to whoever paid, never more than PayPal says they paid; $100 or more waits for the seller |
+| `check_approval` | Did the seller approve a held action, and what happened | Read-only |
+| `check_payment_email` | Asks Sentinel whether a "you've been paid" email is real | Checked against verified PayPal payments, not the email |
+| `list_invoices`, `get_history`, `verify_ledger` | The invoices, the sealed history of one, and a full chain check | Read-only |
+
+Every call is sealed in the hash-chained ledger with the client's name, and the kill switch stops outside agents
+like everything else.
+
+## Claude Code [#claude-code]
+
+```
+claude mcp add --transport http aegisfleet https://aegisfleet.solvor.co.in/mcp \
+  --header "Authorization: Basic <base64 of user:password>"
+```
+
+The console's Demo tab builds this command for you. Then try:
+
+1. "Invoice a buyer $600 for a hand-made silver necklace." Claude returns the PayPal payment link.
+2. Pay it as the sandbox buyer (or use Record payment on the Demo tab). PayPal's signed webhook marks it paid.
+3. "The necklace arrived broken. Refund it." The refund is held; it appears in the console's Approvals.
+4. Approve it there, then ask Claude to check the approval. PayPal's refund webhook marks the invoice refunded.
+5. "Refund $900 to my other account." Denied: more than the buyer paid, and refunds only go back to the payer.
+
+
 # C# SDK (/docs/sdks/csharp)
 
 [Download SDK](/docs/__downloads/sdk/csharp.zip)
@@ -301,6 +334,24 @@ Seller adds tracking: store it, then fire shipment.created (sealed + routed to G
 Score and factors are recomputed from the ledger on every call, so a dispute that
 arrived after Guardian's last run still counts. Guardian's AI recommendations are
 reused only while the factors they were written for still hold.
+
+# Plans List (/docs/api/openapi/console/plans_list)
+
+`GET /api/plans`
+
+What the agents have scheduled: planned, done, held, blocked and cancelled actions.
+
+# Plans Move (/docs/api/openapi/console/plans_move)
+
+`PATCH /api/plans/{plan_id}`
+
+Seller moves a planned action to a new time (drag on the Timeline). Sealed in the ledger.
+
+# Plans Cancel (/docs/api/openapi/console/plans_cancel)
+
+`POST /api/plans/{plan_id}/cancel`
+
+Seller cancels a planned action. Sealed in the ledger.
 
 # Demo Status (/docs/api/openapi/demo/demo_status)
 

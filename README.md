@@ -1,9 +1,35 @@
 # AegisFleet
 
-**Stop losing money to fake payments, held funds, and friendly-fraud disputes.**
-AegisFleet runs 4 AI agents (Sentinel, Defender, Collector, Guardian) behind a
-guardrail gateway. AI may draft, classify, and recommend — only rules or a
-human move money.
+**The brakes for agentic commerce.** AegisFleet is a guardrail gateway between AI
+agents and a seller's PayPal account. Its own four agents (Sentinel, Defender,
+Collector, Guardian) and any outside agent connected over MCP go through the same
+gateway: kill switch, allowlist, caps, human approval for refunds of $100 or more,
+and a hash-chained Proof Ledger. AI may draft, classify, recommend and plan; only
+rules or a human move money.
+
+Live: https://aegisfleet.solvor.co.in · MCP: `https://aegisfleet.solvor.co.in/mcp` · API docs: https://aegisfleet.solvor.co.in/docs
+
+## Connect an outside agent (MCP)
+
+```bash
+claude mcp add --transport http aegisfleet https://aegisfleet.solvor.co.in/mcp \
+  --header "Authorization: Basic $(printf 'judge:<password>' | base64)"
+```
+
+Eight tools: `create_invoice`, `send_payment_reminder`, `refund_payment`, `check_approval`,
+`check_payment_email`, `list_invoices`, `get_history`, `verify_ledger`. Outside agents act as the
+gateway identity `external` ([`backend/app/mcp_server.py`](backend/app/mcp_server.py)): they can bill and
+refund but never touch disputes, reminders are capped at 2 per invoice per week, and a refund only goes
+back to the buyer who paid, for no more than the verified PayPal payment minus refunds already made or
+waiting for approval ([`refundable_cents`](backend/app/gateway/rules.py)).
+
+## Agents plan ahead
+
+Agents schedule their own next steps ([`backend/app/plans.py`](backend/app/plans.py)): Collector books a
+firmer follow-up and a final notice, Guardian books a carrier check, Defender books a re-check 48 hours
+before PayPal's dispute deadline. New facts re-plan (paid cancels the reminders). The seller drags plans on
+the Bryntum timeline; a runner sends each due plan through `gateway.call`, so a plan that breaks a rule is
+shown blocked with the gateway's reason. Every plan, move, cancel and result is sealed.
 
 ## The four agents
 
@@ -59,10 +85,12 @@ python -m evals.run --agent collector --reset
 python -m evals.run --agent injection --reset
 ```
 
+Latest real-model run (Groq → Gemini → NVIDIA), with its notes: [`docs/evals/2026-11-10-groq.md`](docs/evals/2026-11-10-groq.md).
+
 | Suite | n | Latest real-model result |
 |---|---:|---|
 | Sentinel | 20 | 20/20, 0 scams missed, 0 false alarms |
-| Defender | 8 | 8/8 action, 8/8 classification, 0 uncited facts |
+| Defender | 8 | 8/8 action, 8/8 classification, 0 uncited facts, 8/8 AI-written notes passed the citation check |
 | Collector | 10 | 10/10 risk, 10/10 tone, 10/10 action |
 | Injection | 6 | 6/6 scam, 6/6 flagged, 0 tool calls, 6/6 disallowed tools denied |
 
