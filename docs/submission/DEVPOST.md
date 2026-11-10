@@ -18,6 +18,7 @@ AegisFleet watches a seller's PayPal activity and runs AI agents behind a guardr
 
 - **Sentinel** reads suspicious "you got paid" emails and checks them against *verified* PayPal payments in the ledger. Lookalike domains, urgency, off-platform requests and amount mismatches are flagged, and the seller gets a plain-words verdict.
 - **Defender** answers buyer disputes. It gathers the sealed payment, tracking and delivery records, classifies the claim, drafts the evidence, and recommends provide evidence, offer a refund, or accept. Every fact cites a ledger entry.
+- **Collector** chases overdue invoices. It scores risk from invoice age and buyer history, chooses a tone and action with deterministic rules, counts prior reminders in the ledger, and drafts a capped reminder. It cannot change the amount, grant a discount, waive a fee, or call PayPal.
 - **Guardian** keeps PayPal shipment tracking in sync (registers tracking on shipment, marks it delivered) and scores account health from ledger facts: open disputes, refund rate, tracking coverage and sales spikes. The score is rule-based; AI only writes the recommendations, and every appeal-pack line cites a ledger entry.
 - **The gateway** sits between every agent and PayPal. It checks the kill switch, a per-agent allowlist, argument validation and weekly caps, then **holds** anything that touches money until a human approves it in the console. An agent tricked into a refund is denied, and the attempt is recorded.
 - **The Proof Ledger** hash-chains every event, decision and approval. Editing any past record breaks verification at that exact entry.
@@ -29,7 +30,7 @@ The console (React + AG Grid) shows money at risk, approvals, the ledger, agent 
 - **AI:** one OpenAI-compatible wrapper with a fallback chain (Groq → Gemini → NVIDIA NIM). Agents ask for JSON matching a Pydantic schema, invalid output is retried once with the error, and anything still invalid falls back to deterministic rules. Untrusted text such as emails and buyer messages is fenced in prompts and never followed as instructions.
 - **Backend:** FastAPI, PostgreSQL (append-only ledger with advisory-lock sealing), signed session login.
 - **Frontend:** React, Vite, TypeScript, AG Grid.
-- **Evals:** labelled suites run against the real model: Sentinel 20/20 emails (0 scams missed, 0 false alarms); Defender 8/8 disputes (0 uncited facts).
+- **Evals:** labelled suites run against the real model: Sentinel 20/20 emails (0 scams missed, 0 false alarms), Defender 8/8 disputes (0 uncited facts), Collector 10/10 invoices, and 6/6 prompt-injection fixtures (0 tool calls, every disallowed tool denied).
 - **Hosting:** self-hosted behind a Cloudflare Tunnel, with a Render blueprint included.
 
 ## Challenges we ran into
@@ -46,7 +47,8 @@ The console (React + AG Grid) shows money at risk, approvals, the ledger, agent 
 Guardrails belong outside the model. A small gateway with allowlists, caps and human approval made the agents far easier to trust than any prompt instruction could.
 
 ## What's next
-- **Collector:** polite, capped invoice reminders.
+- Wire Collector to a scheduler and a visible console action; v1 reacts to `invoice.overdue`, but the demo does not yet emit that event.
+- Refresh Guardian health immediately when a dispute opens, instead of waiting for the next Guardian payment, shipment, or delivery event.
 - Move from sandbox to production behind the same gateway, with per-seller limits.
 
 ---
@@ -57,7 +59,7 @@ python, fastapi, postgresql, react, typescript, vite, ag-grid, paypal-invoicing,
 ## Tools used (AI)
 | Tool | Model | How we use it |
 |---|---|---|
-| Groq | `openai/gpt-oss-120b` | Primary model for Sentinel (scam verdict), Defender (dispute classification and evidence notes) and Guardian (health recommendations). JSON output validated against Pydantic schemas. |
+| Groq | `openai/gpt-oss-120b` | Primary model for Sentinel (scam verdict), Defender (dispute classification and evidence notes), Collector (reminder wording) and Guardian (health recommendations). JSON output validated against Pydantic schemas. |
 | Google Gemini API | `gemini-3.5-flash` | First fallback when Groq is rate-limited or errors. |
 | NVIDIA NIM | `nemotron-3.5-super-vl-120b-a12b` | Second fallback. |
 | AG Grid Community | – | Proof Ledger table, filtering, and highlighting the broken row after tampering. |
