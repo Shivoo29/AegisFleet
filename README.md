@@ -68,6 +68,14 @@ python -m evals.run --agent injection --reset
 
 The injection suite also re-checks the gateway, so a fixture only passes when every tool it tries to invoke is denied.
 
+## API, docs portal and SDKs
+
+- OpenAPI spec: [`docs/api/openapi.json`](docs/api/openapi.json), also live at `/openapi.json`. Regenerate with `cd backend && python ../scripts/export_openapi.py`; a test fails if it drifts.
+- Docs portal: https://aegisfleet.solvor.co.in/docs, built by [APIMatic](https://www.apimatic.io) from `apimatic/src` into `apimatic/portal`.
+- SDKs: [`apimatic/sdk/python`](apimatic/sdk/python) and [`apimatic/sdk/typescript`](apimatic/sdk/typescript).
+- Rebuild after an API change: copy the spec to `apimatic/src/spec/openapi.json`, then in `apimatic/` run `apimatic portal generate -f` and `apimatic sdk generate -l python -f` (and `-l typescript`).
+- Swagger UI moved to `/swagger`.
+
 ## AI tools used
 
 | Tool | Model | How we use it |

@@ -31,7 +31,12 @@ The console (React + AG Grid) shows money at risk, approvals, the ledger, agent 
 - **Backend:** FastAPI, PostgreSQL (append-only ledger with advisory-lock sealing), signed session login.
 - **Frontend:** React, Vite, TypeScript, AG Grid.
 - **Evals:** labelled suites run against the real model: Sentinel 20/20 emails (0 scams missed, 0 false alarms), Defender 8/8 disputes (0 uncited facts), Collector 10/10 invoices, and 6/6 prompt-injection fixtures (0 tool calls, every disallowed tool denied).
-- **Hosting:** self-hosted behind a Cloudflare Tunnel, with a Render blueprint included.
+- **Hosting:** Render, from `render.yaml` (Docker web service plus managed Postgres, Singapore). Every push to `main` redeploys.
+
+## Sponsor tools we built with
+- **AG Grid Community:** the Proof Ledger and Invoices tables. The ledger re-verifies the hash chain every few seconds; after a tamper the broken record pins to the top in red and every record after it is marked unproven. A link column shows ✓/✕ for each hash link, new records flash as they're sealed, clicking a row opens its full seal (both hashes and the raw payload), and the audit trail exports to CSV. Invoices flash when PayPal's signed webhook marks one paid, show an overdue bar and a pinned totals row, and link to each PayPal payment page.
+- **Render:** the whole app (FastAPI, the React console, the docs portal) and its Postgres database run from one blueprint, with the PayPal sandbox and Groq → Gemini → NVIDIA chain wired through Render env vars. A GitHub Actions ping keeps the free instance awake for judges.
+- **APIMatic:** our FastAPI spec, typed and described to APIMatic's linter (SDK readiness 99/100, AI-tool readiness 98/100), generates a docs portal with a live playground and Python/TypeScript/C# samples, plus Python and TypeScript SDKs committed in `apimatic/sdk/`. The portal is served at https://aegisfleet.solvor.co.in/docs, with `llms.txt` so a coding agent can build on AegisFleet.
 
 ## Challenges we ran into
 - Making AI useful without trusting it. We settled on a rule: AI drafts, classifies and recommends, and only deterministic rules or a human approval execute a PayPal call.
@@ -53,7 +58,7 @@ Guardrails belong outside the model. A small gateway with allowlists, caps and h
 ---
 
 ## Built with
-python, fastapi, postgresql, react, typescript, vite, ag-grid, paypal-invoicing, paypal-webhooks, paypal-disputes, paypal-shipment-tracking, groq, gemini, nvidia-nim, cloudflare
+python, fastapi, postgresql, react, typescript, vite, ag-grid, render, apimatic, paypal-invoicing, paypal-webhooks, paypal-disputes, paypal-shipment-tracking, groq, gemini, nvidia-nim
 
 ## Tools used (AI)
 | Tool | Model | How we use it |
@@ -67,6 +72,7 @@ The models never call PayPal. They return structured recommendations; the gatewa
 
 ## Links
 - Live demo: https://aegisfleet.solvor.co.in
+- API docs and SDKs (APIMatic): https://aegisfleet.solvor.co.in/docs
 - Code: https://github.com/Shivoo29/AegisFleet (MIT)
 - Video: `<YouTube link>`
 

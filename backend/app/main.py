@@ -10,6 +10,7 @@ from app.paypal.webhooks import router as webhook_router
 from app.db import init_schema
 
 app = FastAPI(
+    docs_url="/swagger",  # /docs is the APIMatic portal
     generate_unique_id_function=lambda r: r.name,  # operationIds become SDK method names
     title="AegisFleet",
     version="1.0.0",
@@ -54,6 +55,11 @@ async def healthz() -> dict:
     """Liveness probe for Render and the keep-alive ping. No auth."""
     return {"ok": True}
 
+
+_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+_portal = os.path.join(_root, "apimatic", "portal")
+if os.path.isdir(_portal):  # APIMatic docs portal: `apimatic portal generate` in apimatic/
+    app.mount("/docs", StaticFiles(directory=_portal, html=True), name="docs")
 
 # Serve frontend/dist if it exists (after API routes).
 _frontend_dist = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "frontend", "dist")

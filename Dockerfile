@@ -22,6 +22,7 @@ RUN pip install --no-cache-dir -r /app/backend/requirements.txt
 COPY backend/ /app/backend/
 COPY --from=frontend /app/frontend/dist /app/frontend/dist
 COPY fixtures/ /app/fixtures/
+COPY apimatic/portal/ /app/apimatic/portal/
 
 WORKDIR /app/backend
 

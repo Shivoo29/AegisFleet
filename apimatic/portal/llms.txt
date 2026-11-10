@@ -1,0 +1,46 @@
+# Docs
+
+- Home
+  - [AegisFleet API](/docs/): AI agents that guard a PayPal seller's payments, disputes, invoices and shipments, with every action sealed in a hash-chained Proof Ledger.
+- SDKs
+  - [SDKs](/docs/sdks): Client libraries for this API.
+  - [C# SDK](/docs/sdks/csharp): Install and start using the C# SDK.
+  - [TypeScript SDK](/docs/sdks/typescript): Install and start using the TypeScript SDK.
+  - [Python SDK](/docs/sdks/python): Install and start using the Python SDK.
+- API Reference
+  - Console: Summary, Proof Ledger, approvals, agent runs, disputes, invoices, health.
+    - [Login](/docs/api/openapi/console/login): Check a username and password and set a 12-hour session cookie.
+    - [Logout](/docs/api/openapi/console/logout): Clear the session cookie.
+    - [Me](/docs/api/openapi/console/me): Who is logged in, and whether they are the seller (dev) or a read-mostly judge.
+    - [Summary](/docs/api/openapi/console/summary): Overview numbers: money waiting on approval, open disputes, overdue invoices, health, chain state.
+    - [Ledger](/docs/api/openapi/console/ledger): Proof Ledger entries, newest first. Each entry's hash covers the previous one.
+    - [Ledger Verify](/docs/api/openapi/console/ledger_verify): Recompute every hash in the chain and report the first entry that no longer matches.
+    - [Approvals](/docs/api/openapi/console/approvals): Agent actions the gateway held for a human decision (over the money cap).
+    - [Decide Approval](/docs/api/openapi/console/decide_approval): Approve (the gateway then executes the held action) or reject it. Both are sealed.
+    - [Runs](/docs/api/openapi/console/runs): Recent agent runs with their steps and structured output.
+    - [Get Killswitch](/docs/api/openapi/console/get_killswitch): Is the kill switch on?
+    - [Post Killswitch](/docs/api/openapi/console/post_killswitch): Turn the kill switch on or off. While on, the gateway denies every agent action.
+    - [Inbox](/docs/api/openapi/console/inbox): Run Sentinel inline (a few seconds) so the console gets the verdict in one call.
+    - [Disputes](/docs/api/openapi/console/disputes): Latest state of every PayPal dispute, newest first.
+    - [Dispute Detail](/docs/api/openapi/console/dispute_detail): One dispute with Defender's evidence pack and the pending approval to submit it.
+    - [Invoices](/docs/api/openapi/console/invoices): Invoices with paid/overdue status, risk, shipment and PayPal payment link.
+    - [Shipments](/docs/api/openapi/console/shipments): Seller adds tracking: store it, then fire shipment.created (sealed + routed to Guardian).
+    - [Health](/docs/api/openapi/console/health): Score and factors are recomputed from the ledger on every call, so a dispute that
+arrived after Guardian's last run still counts. Guardian's AI recommendations are
+reused only while the factors they were written for still hold.
+  - Demo: One-click story beats for judges (demo mode only).
+    - [Demo Status](/docs/api/openapi/demo/demo_status): 200 when demo mode is on (404 otherwise).
+    - [Scam Email](/docs/api/openapi/demo/scam_email): Fake 'payment received' email: no verified payment in the ledger -> Sentinel says scam.
+    - [Delivered](/docs/api/openapi/demo/delivered): Courier says the parcel arrived -> Guardian updates tracking.
+    - [Overdue](/docs/api/openapi/demo/overdue): INV-0006 slips 9 days past due -> Collector scores it and sends a capped, polite reminder.
+    - [Replay Injection](/docs/api/openapi/demo/replay_injection): An email told an agent to refund. Sentinel isn't allowed to refund -> gateway DENY, sealed.
+    - [Tamper](/docs/api/openapi/demo/tamper): Edit one sealed entry behind the ledger's back -> verify() points at it.
+    - [Reset](/docs/api/openapi/demo/reset): Wipe everything, then replay Riya's story so the console never starts empty.
+    - [Sandbox Invoice](/docs/api/openapi/demo/sandbox_invoice): Create a real invoice in the PayPal sandbox. Paying it fires a real, signed webhook.
+    - [Sandbox Record Payment](/docs/api/openapi/demo/sandbox_record_payment): Backup for flaky sandbox checkout: record payment on the newest unpaid sandbox invoice.
+
+PayPal then sends the same signed INVOICING.INVOICE.PAID webhook a buyer payment would.
+  - Webhooks: PayPal webhook receiver; signatures are verified with PayPal before routing.
+    - [Paypal Webhook](/docs/api/openapi/webhooks/paypal_webhook): PayPal calls this. The signature is verified with PayPal before the event is sealed and routed.
+  - Ops: Liveness probe.
+    - [Healthz](/docs/api/openapi/ops/healthz): Liveness probe for Render and the keep-alive ping. No auth.

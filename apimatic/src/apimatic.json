@@ -1,0 +1,35 @@
+{
+  "$schema": "https://cdn.jsdelivr.net/npm/@apimatic/cli@2/apimatic.schema.json",
+  "schemaVersion": 1,
+  "portal": {
+    "site": {
+      "name": "AegisFleet API",
+      "url": "https://aegisfleet.solvor.co.in/docs"
+    },
+    "brand": {
+      "logo": {
+        "light": "static/images/aegis-logo-light.png",
+        "dark": "static/images/aegis-logo-dark.png"
+      },
+      "favicon": "static/images/favicon.ico",
+      "colors": {
+        "primary": {
+          "light": "#0b3530",
+          "dark": "#8fd8c6"
+        }
+      },
+      "colorMode": "both"
+    },
+    "navigation": {
+      "links": []
+    },
+    "ai": {
+      "pageActions": true
+    }
+  },
+  "languages": {
+    "csharp": {},
+    "typescript": {},
+    "python": {}
+  }
+}

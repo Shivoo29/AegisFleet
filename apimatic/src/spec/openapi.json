@@ -1,0 +1,2202 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "AegisFleet",
+    "description": "Seller console API for AegisFleet: AI agents that guard a PayPal seller's payments, disputes, invoices and shipments. Agents never call PayPal directly; every action passes a guardrail gateway (kill switch, allowlist, caps, human approval) and is sealed into a hash-chained Proof Ledger.\n\nAuthenticate with HTTP Basic (`dev` or `judge`) or the session cookie set by `POST /api/login`.",
+    "version": "1.0.0",
+    "contact": {
+      "name": "AegisFleet team",
+      "url": "https://github.com/Shivoo29/aegisfleet"
+    }
+  },
+  "servers": [
+    {
+      "url": "https://aegisfleet.solvor.co.in",
+      "description": "Live demo (PayPal sandbox)",
+      "x-environment": "production"
+    }
+  ],
+  "paths": {
+    "/api/login": {
+      "post": {
+        "tags": [
+          "console"
+        ],
+        "summary": "Login",
+        "description": "Check a username and password and set a 12-hour session cookie.",
+        "operationId": "login",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Me"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Login required: HTTP Basic or the session cookie"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/logout": {
+      "post": {
+        "tags": [
+          "console"
+        ],
+        "summary": "Logout",
+        "description": "Clear the session cookie.",
+        "operationId": "logout",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Ok"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Login required: HTTP Basic or the session cookie"
+          }
+        }
+      }
+    },
+    "/api/me": {
+      "get": {
+        "tags": [
+          "console"
+        ],
+        "summary": "Me",
+        "description": "Who is logged in, and whether they are the seller (dev) or a read-mostly judge.",
+        "operationId": "me",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Me"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Login required: HTTP Basic or the session cookie"
+          }
+        },
+        "security": [
+          {
+            "HTTPBasic": []
+          }
+        ]
+      }
+    },
+    "/api/summary": {
+      "get": {
+        "tags": [
+          "console"
+        ],
+        "summary": "Summary",
+        "description": "Overview numbers: money waiting on approval, open disputes, overdue invoices, health, chain state.",
+        "operationId": "summary",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Summary"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Login required: HTTP Basic or the session cookie"
+          }
+        },
+        "security": [
+          {
+            "HTTPBasic": []
+          }
+        ]
+      }
+    },
+    "/api/ledger": {
+      "get": {
+        "tags": [
+          "console"
+        ],
+        "summary": "Ledger",
+        "description": "Proof Ledger entries, newest first. Each entry's hash covers the previous one.",
+        "operationId": "ledger",
+        "security": [
+          {
+            "HTTPBasic": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "kind",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "description": "Entry kind: event, decision, agent_step, approval or note"
+                },
+                {
+                  "type": "null",
+                  "description": "Not set"
+                }
+              ],
+              "description": "Entry kind: event, decision, agent_step, approval or note"
+            },
+            "description": "Entry kind: event, decision, agent_step, approval or note"
+          },
+          {
+            "name": "subject_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "description": "What this is about: an invoice, dispute or email id"
+                },
+                {
+                  "type": "null",
+                  "description": "Not set"
+                }
+              ],
+              "description": "What this is about: an invoice, dispute or email id"
+            },
+            "description": "What this is about: an invoice, dispute or email id"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 100,
+              "description": "Maximum number of items to return"
+            },
+            "description": "Maximum number of items to return"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/LedgerEntry"
+                  },
+                  "title": "Response 200 Ledger"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Login required: HTTP Basic or the session cookie"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/ledger/verify": {
+      "get": {
+        "tags": [
+          "console"
+        ],
+        "summary": "Ledger Verify",
+        "description": "Recompute every hash in the chain and report the first entry that no longer matches.",
+        "operationId": "ledger_verify",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChainVerify"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Login required: HTTP Basic or the session cookie"
+          }
+        },
+        "security": [
+          {
+            "HTTPBasic": []
+          }
+        ]
+      }
+    },
+    "/api/approvals": {
+      "get": {
+        "tags": [
+          "console"
+        ],
+        "summary": "Approvals",
+        "description": "Agent actions the gateway held for a human decision (over the money cap).",
+        "operationId": "approvals",
+        "security": [
+          {
+            "HTTPBasic": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "pending",
+              "description": "Current status"
+            },
+            "description": "Current status"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Approval"
+                  },
+                  "title": "Response 200 Approvals"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Login required: HTTP Basic or the session cookie"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/approvals/{approval_id}/{action}": {
+      "post": {
+        "tags": [
+          "console"
+        ],
+        "summary": "Decide Approval",
+        "description": "Approve (the gateway then executes the held action) or reject it. Both are sealed.",
+        "operationId": "decide_approval",
+        "security": [
+          {
+            "HTTPBasic": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "approval_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "Id of the pending approval for this action"
+            },
+            "description": "Id of the pending approval for this action"
+          },
+          {
+            "name": "action",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "enum": [
+                "approve",
+                "reject"
+              ],
+              "type": "string",
+              "description": "approve or reject"
+            },
+            "description": "approve or reject"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "anyOf": [
+                  {
+                    "$ref": "#/components/schemas/ApprovalBody"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "title": "Body"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApprovalResult"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Login required: HTTP Basic or the session cookie"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/runs": {
+      "get": {
+        "tags": [
+          "console"
+        ],
+        "summary": "Runs",
+        "description": "Recent agent runs with their steps and structured output.",
+        "operationId": "runs",
+        "security": [
+          {
+            "HTTPBasic": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 20,
+              "description": "Maximum number of items to return"
+            },
+            "description": "Maximum number of items to return"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AgentRun"
+                  },
+                  "title": "Response 200 Runs"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Login required: HTTP Basic or the session cookie"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/killswitch": {
+      "get": {
+        "tags": [
+          "console"
+        ],
+        "summary": "Get Killswitch",
+        "description": "Is the kill switch on?",
+        "operationId": "get_killswitch",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/KillSwitch"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Login required: HTTP Basic or the session cookie"
+          }
+        },
+        "security": [
+          {
+            "HTTPBasic": []
+          }
+        ]
+      },
+      "post": {
+        "tags": [
+          "console"
+        ],
+        "summary": "Post Killswitch",
+        "description": "Turn the kill switch on or off. While on, the gateway denies every agent action.",
+        "operationId": "post_killswitch",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/KillSwitchBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/KillSwitch"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Login required: HTTP Basic or the session cookie"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBasic": []
+          }
+        ]
+      }
+    },
+    "/api/inbox": {
+      "post": {
+        "tags": [
+          "console"
+        ],
+        "summary": "Inbox",
+        "description": "Run Sentinel inline (a few seconds) so the console gets the verdict in one call.",
+        "operationId": "inbox",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InboxEmail"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InboxVerdict"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Login required: HTTP Basic or the session cookie"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBasic": []
+          }
+        ]
+      }
+    },
+    "/api/disputes": {
+      "get": {
+        "tags": [
+          "console"
+        ],
+        "summary": "Disputes",
+        "description": "Latest state of every PayPal dispute, newest first.",
+        "operationId": "disputes",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/Dispute"
+                  },
+                  "type": "array",
+                  "title": "Response 200 Disputes"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Login required: HTTP Basic or the session cookie"
+          }
+        },
+        "security": [
+          {
+            "HTTPBasic": []
+          }
+        ]
+      }
+    },
+    "/api/disputes/{dispute_id}": {
+      "get": {
+        "tags": [
+          "console"
+        ],
+        "summary": "Dispute Detail",
+        "description": "One dispute with Defender's evidence pack and the pending approval to submit it.",
+        "operationId": "dispute_detail",
+        "security": [
+          {
+            "HTTPBasic": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "dispute_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "PayPal dispute id, e.g. PP-D-12345"
+            },
+            "description": "PayPal dispute id, e.g. PP-D-12345"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DisputeDetail"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Login required: HTTP Basic or the session cookie"
+          },
+          "404": {
+            "description": "No such dispute"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/invoices": {
+      "get": {
+        "tags": [
+          "console"
+        ],
+        "summary": "Invoices",
+        "description": "Invoices with paid/overdue status, risk, shipment and PayPal payment link.",
+        "operationId": "invoices",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/Invoice"
+                  },
+                  "type": "array",
+                  "title": "Response 200 Invoices"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Login required: HTTP Basic or the session cookie"
+          }
+        },
+        "security": [
+          {
+            "HTTPBasic": []
+          }
+        ]
+      }
+    },
+    "/api/shipments": {
+      "post": {
+        "tags": [
+          "console"
+        ],
+        "summary": "Shipments",
+        "description": "Seller adds tracking: store it, then fire shipment.created (sealed + routed to Guardian).",
+        "operationId": "shipments",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ShipmentBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ShipmentResult"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Login required: HTTP Basic or the session cookie"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBasic": []
+          }
+        ]
+      }
+    },
+    "/api/health": {
+      "get": {
+        "tags": [
+          "console"
+        ],
+        "summary": "Health",
+        "description": "Score and factors are recomputed from the ledger on every call, so a dispute that\narrived after Guardian's last run still counts. Guardian's AI recommendations are\nreused only while the factors they were written for still hold.",
+        "operationId": "health",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Health"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Login required: HTTP Basic or the session cookie"
+          }
+        },
+        "security": [
+          {
+            "HTTPBasic": []
+          }
+        ]
+      }
+    },
+    "/api/demo/status": {
+      "get": {
+        "tags": [
+          "demo"
+        ],
+        "summary": "Demo Status",
+        "description": "200 when demo mode is on (404 otherwise).",
+        "operationId": "demo_status",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "title": "Response Demo Status"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBasic": []
+          }
+        ]
+      }
+    },
+    "/api/demo/scam_email": {
+      "post": {
+        "tags": [
+          "demo"
+        ],
+        "summary": "Scam Email",
+        "description": "Fake 'payment received' email: no verified payment in the ledger -> Sentinel says scam.",
+        "operationId": "scam_email",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DemoResult"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBasic": []
+          }
+        ]
+      }
+    },
+    "/api/demo/delivered": {
+      "post": {
+        "tags": [
+          "demo"
+        ],
+        "summary": "Delivered",
+        "description": "Courier says the parcel arrived -> Guardian updates tracking.",
+        "operationId": "delivered",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DemoResult"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBasic": []
+          }
+        ]
+      }
+    },
+    "/api/demo/overdue": {
+      "post": {
+        "tags": [
+          "demo"
+        ],
+        "summary": "Overdue",
+        "description": "INV-0006 slips 9 days past due -> Collector scores it and sends a capped, polite reminder.",
+        "operationId": "overdue",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DemoResult"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBasic": []
+          }
+        ]
+      }
+    },
+    "/api/demo/replay_injection": {
+      "post": {
+        "tags": [
+          "demo"
+        ],
+        "summary": "Replay Injection",
+        "description": "An email told an agent to refund. Sentinel isn't allowed to refund -> gateway DENY, sealed.",
+        "operationId": "replay_injection",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DemoResult"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBasic": []
+          }
+        ]
+      }
+    },
+    "/api/demo/tamper": {
+      "post": {
+        "tags": [
+          "demo"
+        ],
+        "summary": "Tamper",
+        "description": "Edit one sealed entry behind the ledger's back -> verify() points at it.",
+        "operationId": "tamper",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DemoResult"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBasic": []
+          }
+        ]
+      }
+    },
+    "/api/demo/reset": {
+      "post": {
+        "tags": [
+          "demo"
+        ],
+        "summary": "Reset",
+        "description": "Wipe everything, then replay Riya's story so the console never starts empty.",
+        "operationId": "reset",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DemoResult"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBasic": []
+          }
+        ]
+      }
+    },
+    "/api/demo/sandbox_invoice": {
+      "post": {
+        "tags": [
+          "demo"
+        ],
+        "summary": "Sandbox Invoice",
+        "description": "Create a real invoice in the PayPal sandbox. Paying it fires a real, signed webhook.",
+        "operationId": "sandbox_invoice",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DemoResult"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBasic": []
+          }
+        ]
+      }
+    },
+    "/api/demo/sandbox_record_payment": {
+      "post": {
+        "tags": [
+          "demo"
+        ],
+        "summary": "Sandbox Record Payment",
+        "description": "Backup for flaky sandbox checkout: record payment on the newest unpaid sandbox invoice.\n\nPayPal then sends the same signed INVOICING.INVOICE.PAID webhook a buyer payment would.",
+        "operationId": "sandbox_record_payment",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DemoResult"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBasic": []
+          }
+        ]
+      }
+    },
+    "/webhooks/paypal": {
+      "post": {
+        "tags": [
+          "webhooks"
+        ],
+        "summary": "Paypal Webhook",
+        "description": "PayPal calls this. The signature is verified with PayPal before the event is sealed and routed.",
+        "operationId": "paypal_webhook",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "title": "Response Paypal Webhook"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/healthz": {
+      "get": {
+        "summary": "Healthz",
+        "description": "Liveness probe for Render and the keep-alive ping. No auth.",
+        "operationId": "healthz",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "title": "Response Healthz"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "ops"
+        ]
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "AgentRun": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique id"
+          },
+          "agent": {
+            "type": "string",
+            "description": "Agent name: sentinel, defender, guardian or collector"
+          },
+          "event_type": {
+            "type": "string",
+            "description": "Event that started the run, e.g. dispute.created"
+          },
+          "status": {
+            "type": "string",
+            "description": "Current status"
+          },
+          "steps": {
+            "items": {},
+            "type": "array",
+            "description": "Each step the agent took"
+          },
+          "output": {
+            "anyOf": [
+              {
+                "type": "object",
+                "description": "Agent's structured result"
+              },
+              {
+                "type": "null",
+                "description": "Not set"
+              }
+            ],
+            "description": "Agent's structured result"
+          },
+          "started_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the run started (ISO 8601)"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "agent",
+          "event_type",
+          "status",
+          "steps",
+          "started_at"
+        ],
+        "title": "AgentRun",
+        "description": "AgentRun object"
+      },
+      "Approval": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique id"
+          },
+          "agent": {
+            "type": "string",
+            "description": "Agent name: sentinel, defender, guardian or collector"
+          },
+          "tool": {
+            "type": "string",
+            "description": "Gateway tool the agent called"
+          },
+          "args": {
+            "type": "object",
+            "description": "Tool arguments the agent asked the gateway to run"
+          },
+          "reason": {
+            "type": "string",
+            "description": "Why"
+          },
+          "summary": {
+            "anyOf": [
+              {
+                "type": "string",
+                "description": "One-line summary"
+              },
+              {
+                "type": "null",
+                "description": "Not set"
+              }
+            ],
+            "description": "One-line summary"
+          },
+          "amount_cents": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "description": "Amount in minor units (cents)"
+              },
+              {
+                "type": "null",
+                "description": "Not set"
+              }
+            ],
+            "description": "Amount in minor units (cents)"
+          },
+          "currency": {
+            "anyOf": [
+              {
+                "type": "string",
+                "description": "ISO 4217 currency code"
+              },
+              {
+                "type": "null",
+                "description": "Not set"
+              }
+            ],
+            "description": "ISO 4217 currency code"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "approved",
+              "rejected"
+            ],
+            "description": "Current status"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When it was created (ISO 8601)"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "agent",
+          "tool",
+          "args",
+          "reason",
+          "status",
+          "created_at"
+        ],
+        "title": "Approval",
+        "description": "Approval object"
+      },
+      "ApprovalBody": {
+        "properties": {
+          "note": {
+            "type": "string",
+            "description": "Optional reason, sealed into the ledger with the decision",
+            "default": ""
+          }
+        },
+        "type": "object",
+        "title": "ApprovalBody",
+        "description": "ApprovalBody object"
+      },
+      "ApprovalResult": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "approved",
+              "rejected"
+            ],
+            "description": "Current status"
+          },
+          "decision": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Decision",
+                "description": "Gateway decision for the executed action"
+              },
+              {
+                "type": "null",
+                "description": "Not set"
+              }
+            ],
+            "description": "Gateway decision for the executed action"
+          }
+        },
+        "type": "object",
+        "required": [
+          "status"
+        ],
+        "title": "ApprovalResult",
+        "description": "ApprovalResult object"
+      },
+      "ChainVerify": {
+        "properties": {
+          "ok": {
+            "type": "boolean",
+            "description": "True on success"
+          },
+          "checked": {
+            "type": "integer",
+            "description": "Number of ledger entries checked"
+          },
+          "broken_at": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "description": "First ledger id whose hash no longer matches"
+              },
+              {
+                "type": "null",
+                "description": "Not set"
+              }
+            ],
+            "description": "First ledger id whose hash no longer matches"
+          }
+        },
+        "type": "object",
+        "required": [
+          "ok",
+          "checked"
+        ],
+        "title": "ChainVerify",
+        "description": "ChainVerify object"
+      },
+      "Decision": {
+        "properties": {
+          "outcome": {
+            "type": "string",
+            "enum": [
+              "allow",
+              "hold",
+              "deny"
+            ],
+            "description": "allow, hold or deny"
+          },
+          "reason": {
+            "type": "string",
+            "description": "Why"
+          },
+          "approval_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "description": "Id of the pending approval for this action"
+              },
+              {
+                "type": "null",
+                "description": "Not set"
+              }
+            ],
+            "description": "Id of the pending approval for this action"
+          },
+          "result": {
+            "anyOf": [
+              {
+                "type": "object",
+                "description": "What the executed tool returned"
+              },
+              {
+                "type": "null",
+                "description": "Not set"
+              }
+            ],
+            "description": "What the executed tool returned"
+          },
+          "ledger_entry_id": {
+            "type": "integer",
+            "description": "Ledger entry that seals this"
+          }
+        },
+        "type": "object",
+        "required": [
+          "outcome",
+          "reason",
+          "ledger_entry_id"
+        ],
+        "title": "Decision",
+        "description": "Decision object"
+      },
+      "DemoResult": {
+        "properties": {
+          "ok": {
+            "type": "boolean",
+            "description": "True on success"
+          },
+          "message": {
+            "type": "string",
+            "description": "What happened, in plain words, for the console toast"
+          }
+        },
+        "additionalProperties": true,
+        "type": "object",
+        "required": [
+          "ok",
+          "message"
+        ],
+        "title": "DemoResult",
+        "description": "DemoResult object"
+      },
+      "Dispute": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique id"
+          },
+          "invoice_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "description": "Invoice id, e.g. INV-0007"
+              },
+              {
+                "type": "null",
+                "description": "Not set"
+              }
+            ],
+            "description": "Invoice id, e.g. INV-0007"
+          },
+          "reason": {
+            "type": "string",
+            "description": "Why"
+          },
+          "status": {
+            "type": "string",
+            "description": "Current status"
+          },
+          "amount_cents": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "description": "Amount in minor units (cents)"
+              },
+              {
+                "type": "null",
+                "description": "Not set"
+              }
+            ],
+            "description": "Amount in minor units (cents)"
+          },
+          "currency": {
+            "anyOf": [
+              {
+                "type": "string",
+                "description": "ISO 4217 currency code"
+              },
+              {
+                "type": "null",
+                "description": "Not set"
+              }
+            ],
+            "description": "ISO 4217 currency code"
+          },
+          "buyer_name": {
+            "anyOf": [
+              {
+                "type": "string",
+                "description": "Buyer's name as PayPal reports it"
+              },
+              {
+                "type": "null",
+                "description": "Not set"
+              }
+            ],
+            "description": "Buyer's name as PayPal reports it"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When it was created (ISO 8601)"
+          },
+          "due_by": {
+            "anyOf": [
+              {
+                "type": "string",
+                "description": "Seller response deadline (ISO 8601)"
+              },
+              {
+                "type": "null",
+                "description": "Not set"
+              }
+            ],
+            "description": "Seller response deadline (ISO 8601)"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "reason",
+          "status",
+          "created_at"
+        ],
+        "title": "Dispute",
+        "description": "Dispute object"
+      },
+      "DisputeDetail": {
+        "properties": {
+          "dispute": {
+            "$ref": "#/components/schemas/Dispute",
+            "description": "The dispute"
+          },
+          "evidence_pack": {
+            "anyOf": [
+              {
+                "type": "object",
+                "description": "Defender's evidence pack, every fact citing a ledger id"
+              },
+              {
+                "type": "null",
+                "description": "Not set"
+              }
+            ],
+            "description": "Defender's evidence pack, every fact citing a ledger id"
+          },
+          "approval_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "description": "Id of the pending approval for this action"
+              },
+              {
+                "type": "null",
+                "description": "Not set"
+              }
+            ],
+            "description": "Id of the pending approval for this action"
+          }
+        },
+        "type": "object",
+        "required": [
+          "dispute"
+        ],
+        "title": "DisputeDetail",
+        "description": "DisputeDetail object"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "description": "Validation errors"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError",
+        "description": "HTTPValidationError object"
+      },
+      "Health": {
+        "properties": {
+          "score": {
+            "type": "integer",
+            "description": "Health score, 0-100"
+          },
+          "factors": {
+            "items": {
+              "$ref": "#/components/schemas/HealthFactor"
+            },
+            "type": "array",
+            "description": "What the health score is made of"
+          },
+          "recommendations": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "description": "Steps that would raise the score"
+          },
+          "appeal_pack": {
+            "anyOf": [
+              {
+                "type": "string",
+                "description": "Draft appeal text Guardian wrote for PayPal, if the account is limited"
+              },
+              {
+                "type": "null",
+                "description": "Not set"
+              }
+            ],
+            "description": "Draft appeal text Guardian wrote for PayPal, if the account is limited"
+          }
+        },
+        "type": "object",
+        "required": [
+          "score",
+          "factors",
+          "recommendations"
+        ],
+        "title": "Health",
+        "description": "Health object"
+      },
+      "HealthFactor": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Factor name"
+          },
+          "value": {
+            "description": "Measured value"
+          },
+          "impact": {
+            "type": "string",
+            "description": "How this factor moves the score"
+          },
+          "note": {
+            "type": "string",
+            "description": "Free-text note"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "value",
+          "impact",
+          "note"
+        ],
+        "title": "HealthFactor",
+        "description": "HealthFactor object"
+      },
+      "InboxEmail": {
+        "properties": {
+          "subject_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "description": "What this is about: an invoice, dispute or email id"
+              },
+              {
+                "type": "null",
+                "description": "Not set"
+              }
+            ],
+            "examples": [
+              "INV-0007"
+            ],
+            "description": "What this is about: an invoice, dispute or email id"
+          },
+          "invoice_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "description": "Invoice id, e.g. INV-0007"
+              },
+              {
+                "type": "null",
+                "description": "Not set"
+              }
+            ],
+            "examples": [
+              "INV-0007"
+            ],
+            "description": "Invoice id, e.g. INV-0007"
+          },
+          "from": {
+            "anyOf": [
+              {
+                "type": "string",
+                "description": "Sender address"
+              },
+              {
+                "type": "null",
+                "description": "Not set"
+              }
+            ],
+            "examples": [
+              "service@paypa1-support.com"
+            ],
+            "description": "Sender address"
+          },
+          "subject": {
+            "anyOf": [
+              {
+                "type": "string",
+                "description": "Email subject"
+              },
+              {
+                "type": "null",
+                "description": "Not set"
+              }
+            ],
+            "examples": [
+              "Payment received: $600.00"
+            ],
+            "description": "Email subject"
+          },
+          "body": {
+            "anyOf": [
+              {
+                "type": "string",
+                "description": "Email body text"
+              },
+              {
+                "type": "null",
+                "description": "Not set"
+              }
+            ],
+            "examples": [
+              "You have received a payment of $600.00. Ship the order now."
+            ],
+            "description": "Email body text"
+          }
+        },
+        "additionalProperties": true,
+        "type": "object",
+        "title": "InboxEmail",
+        "description": "InboxEmail object"
+      },
+      "InboxVerdict": {
+        "properties": {
+          "run_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "description": "Agent run id"
+              },
+              {
+                "type": "null",
+                "description": "Not set"
+              }
+            ],
+            "description": "Agent run id"
+          },
+          "status": {
+            "anyOf": [
+              {
+                "type": "string",
+                "description": "Current status"
+              },
+              {
+                "type": "null",
+                "description": "Not set"
+              }
+            ],
+            "description": "Current status"
+          },
+          "verdict": {
+            "anyOf": [
+              {
+                "type": "object",
+                "description": "Sentinel verdict: scam | legit | unsure, with red flags"
+              },
+              {
+                "type": "null",
+                "description": "Not set"
+              }
+            ],
+            "description": "Sentinel verdict: scam | legit | unsure, with red flags"
+          }
+        },
+        "type": "object",
+        "title": "InboxVerdict",
+        "description": "InboxVerdict object"
+      },
+      "Invoice": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique id"
+          },
+          "buyer_email": {
+            "anyOf": [
+              {
+                "type": "string",
+                "description": "Buyer's email address"
+              },
+              {
+                "type": "null",
+                "description": "Not set"
+              }
+            ],
+            "description": "Buyer's email address"
+          },
+          "amount_cents": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "description": "Amount in minor units (cents)"
+              },
+              {
+                "type": "null",
+                "description": "Not set"
+              }
+            ],
+            "description": "Amount in minor units (cents)"
+          },
+          "currency": {
+            "type": "string",
+            "description": "ISO 4217 currency code"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "paid",
+              "overdue",
+              "sent"
+            ],
+            "description": "Current status"
+          },
+          "days_overdue": {
+            "type": "integer",
+            "description": "Days past the due date; 0 when paid or not yet due"
+          },
+          "risk": {
+            "type": "string",
+            "enum": [
+              "low",
+              "medium",
+              "high"
+            ],
+            "description": "Payment risk: low, medium or high"
+          },
+          "shipped": {
+            "type": "boolean",
+            "description": "True when tracking was added"
+          },
+          "tracking_number": {
+            "anyOf": [
+              {
+                "type": "string",
+                "description": "Carrier tracking number"
+              },
+              {
+                "type": "null",
+                "description": "Not set"
+              }
+            ],
+            "description": "Carrier tracking number"
+          },
+          "created_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "description": "When it was created (ISO 8601)"
+              },
+              {
+                "type": "null",
+                "description": "Not set"
+              }
+            ],
+            "description": "When it was created (ISO 8601)"
+          },
+          "paid_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time",
+                "description": "When payment was verified (ISO 8601)"
+              },
+              {
+                "type": "null",
+                "description": "Not set"
+              }
+            ],
+            "description": "When payment was verified (ISO 8601)"
+          },
+          "pay_url": {
+            "anyOf": [
+              {
+                "type": "string",
+                "description": "PayPal payment page for this invoice"
+              },
+              {
+                "type": "null",
+                "description": "Not set"
+              }
+            ],
+            "description": "PayPal payment page for this invoice"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "currency",
+          "status",
+          "days_overdue",
+          "risk",
+          "shipped"
+        ],
+        "title": "Invoice",
+        "description": "Invoice object"
+      },
+      "KillSwitch": {
+        "properties": {
+          "on": {
+            "type": "boolean",
+            "description": "True when the kill switch is on"
+          }
+        },
+        "type": "object",
+        "required": [
+          "on"
+        ],
+        "title": "KillSwitch",
+        "description": "KillSwitch object"
+      },
+      "KillSwitchBody": {
+        "properties": {
+          "on": {
+            "type": "boolean",
+            "description": "true stops every agent action at the gateway",
+            "default": false
+          }
+        },
+        "type": "object",
+        "title": "KillSwitchBody",
+        "description": "KillSwitchBody object"
+      },
+      "LedgerEntry": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "description": "Unique id"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "event",
+              "decision",
+              "agent_step",
+              "approval",
+              "note"
+            ],
+            "description": "Entry kind: event, decision, agent_step, approval or note"
+          },
+          "subject_id": {
+            "type": "string",
+            "description": "What this is about: an invoice, dispute or email id"
+          },
+          "summary": {
+            "type": "string",
+            "description": "One-line summary"
+          },
+          "payload": {
+            "type": "object",
+            "description": "Sealed data for this entry"
+          },
+          "prev_hash": {
+            "type": "string",
+            "description": "Hash of the previous entry; empty for the first"
+          },
+          "hash": {
+            "type": "string",
+            "description": "SHA-256 of this entry plus the previous hash"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When it was created (ISO 8601)"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "kind",
+          "subject_id",
+          "summary",
+          "payload",
+          "prev_hash",
+          "hash",
+          "created_at"
+        ],
+        "title": "LedgerEntry",
+        "description": "LedgerEntry object"
+      },
+      "LoginBody": {
+        "properties": {
+          "username": {
+            "type": "string",
+            "default": "",
+            "examples": [
+              "judge"
+            ],
+            "description": "dev or judge"
+          },
+          "password": {
+            "type": "string",
+            "default": "",
+            "examples": [
+              "<judge password>"
+            ],
+            "description": "Console password"
+          }
+        },
+        "type": "object",
+        "title": "LoginBody",
+        "description": "LoginBody object"
+      },
+      "Me": {
+        "properties": {
+          "user": {
+            "type": "string",
+            "description": "Logged-in user name"
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "dev",
+              "judge"
+            ],
+            "description": "dev (seller) or judge"
+          }
+        },
+        "type": "object",
+        "required": [
+          "user",
+          "role"
+        ],
+        "title": "Me",
+        "description": "Me object"
+      },
+      "Ok": {
+        "properties": {
+          "ok": {
+            "type": "boolean",
+            "description": "True on success"
+          }
+        },
+        "type": "object",
+        "required": [
+          "ok"
+        ],
+        "title": "Ok",
+        "description": "Ok object"
+      },
+      "ShipmentBody": {
+        "properties": {
+          "invoice_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "description": "Invoice id, e.g. INV-0007"
+              },
+              {
+                "type": "null",
+                "description": "Not set"
+              }
+            ],
+            "examples": [
+              "INV-0007"
+            ],
+            "description": "Invoice id, e.g. INV-0007"
+          },
+          "tracking_number": {
+            "anyOf": [
+              {
+                "type": "string",
+                "description": "Carrier tracking number"
+              },
+              {
+                "type": "null",
+                "description": "Not set"
+              }
+            ],
+            "examples": [
+              "1Z999AA10123456784"
+            ],
+            "description": "Carrier tracking number"
+          },
+          "carrier": {
+            "type": "string",
+            "default": "OTHER",
+            "examples": [
+              "UPS"
+            ],
+            "description": "Shipping carrier, e.g. UPS"
+          }
+        },
+        "type": "object",
+        "title": "ShipmentBody",
+        "description": "ShipmentBody object"
+      },
+      "ShipmentResult": {
+        "properties": {
+          "ok": {
+            "type": "boolean",
+            "description": "True on success"
+          },
+          "sealed": {
+            "type": "boolean",
+            "description": "True once the event is in the ledger"
+          },
+          "run_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "description": "Agent run id"
+              },
+              {
+                "type": "null",
+                "description": "Not set"
+              }
+            ],
+            "description": "Agent run id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "ok",
+          "sealed"
+        ],
+        "title": "ShipmentResult",
+        "description": "ShipmentResult object"
+      },
+      "Summary": {
+        "properties": {
+          "money_at_risk_cents": {
+            "type": "integer",
+            "description": "Total held for approval, in cents"
+          },
+          "currency": {
+            "type": "string",
+            "description": "ISO 4217 currency code"
+          },
+          "pending_approvals": {
+            "type": "integer",
+            "description": "Actions waiting for a human"
+          },
+          "open_disputes": {
+            "type": "integer",
+            "description": "Number of open disputes"
+          },
+          "overdue_invoices": {
+            "type": "integer",
+            "description": "Number of overdue invoice events"
+          },
+          "health_score": {
+            "type": "integer",
+            "description": "Account health score, 0-100"
+          },
+          "kill_switch": {
+            "type": "boolean",
+            "description": "True when the kill switch blocks all agent actions"
+          },
+          "chain_ok": {
+            "type": "boolean",
+            "description": "True when every ledger hash still matches"
+          }
+        },
+        "type": "object",
+        "required": [
+          "money_at_risk_cents",
+          "currency",
+          "pending_approvals",
+          "open_disputes",
+          "overdue_invoices",
+          "health_score",
+          "kill_switch",
+          "chain_ok"
+        ],
+        "title": "Summary",
+        "description": "Summary object"
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "description": "Where the invalid value is"
+          },
+          "msg": {
+            "type": "string",
+            "description": "Error message"
+          },
+          "type": {
+            "type": "string",
+            "description": "Error type"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError",
+        "description": "ValidationError object"
+      }
+    },
+    "securitySchemes": {
+      "HTTPBasic": {
+        "type": "http",
+        "scheme": "basic"
+      }
+    }
+  },
+  "tags": [
+    {
+      "name": "console",
+      "description": "Summary, Proof Ledger, approvals, agent runs, disputes, invoices, health."
+    },
+    {
+      "name": "demo",
+      "description": "One-click story beats for judges (demo mode only)."
+    },
+    {
+      "name": "ops",
+      "description": "Liveness probe."
+    },
+    {
+      "name": "webhooks",
+      "description": "PayPal webhook receiver; signatures are verified with PayPal before routing."
+    }
+  ]
+}
