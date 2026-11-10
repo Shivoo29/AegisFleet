@@ -12,6 +12,7 @@ from app.db import conn
 from app.events import route, store_event
 from app.ledger import verify
 from app.models import Event
+from app.schemas import DemoResult, doc
 
 EMAILS = Path(__file__).resolve().parent.parent.parent / "fixtures" / "emails"
 DEMO_INVOICE = "INV-0007"
@@ -36,10 +37,11 @@ def _fire(type_: str, source: str, data: dict, bg: BackgroundTasks) -> dict:
 
 @router.get("/status")
 def demo_status() -> dict:
+    """200 when demo mode is on (404 otherwise)."""
     return {"demo": True}
 
 
-@router.post("/scam_email")
+@router.post("/scam_email", **doc(DemoResult))
 def scam_email(bg: BackgroundTasks) -> dict:
     """Fake 'payment received' email: no verified payment in the ledger -> Sentinel says scam."""
     data = json.loads((EMAILS / "fake_payment_01.json").read_text(encoding="utf-8"))
@@ -47,7 +49,7 @@ def scam_email(bg: BackgroundTasks) -> dict:
             "message": "Scam email sent to Sentinel. See the verdict in Activity in a few seconds."}
 
 
-@router.post("/delivered")
+@router.post("/delivered", **doc(DemoResult))
 def delivered(bg: BackgroundTasks) -> dict:
     """Courier says the parcel arrived -> Guardian updates tracking."""
     return {**_fire("delivery.confirmed", "courier",
@@ -55,7 +57,7 @@ def delivered(bg: BackgroundTasks) -> dict:
             "message": f"Courier marked {DEMO_INVOICE} delivered. The event is sealed in the ledger."}
 
 
-@router.post("/overdue")
+@router.post("/overdue", **doc(DemoResult))
 def overdue(bg: BackgroundTasks) -> dict:
     """INV-0006 slips 9 days past due -> Collector scores it and sends a capped, polite reminder."""
     due = (datetime.now(timezone.utc) - timedelta(days=9)).isoformat()
@@ -66,7 +68,7 @@ def overdue(bg: BackgroundTasks) -> dict:
                        "and the gateway's cap in Ledger."}
 
 
-@router.post("/replay_injection")
+@router.post("/replay_injection", **doc(DemoResult))
 def replay_injection() -> dict:
     """An email told an agent to refund. Sentinel isn't allowed to refund -> gateway DENY, sealed."""
     from app.gateway import gateway
@@ -78,7 +80,7 @@ def replay_injection() -> dict:
                        f"Sealed as ledger entry #{d.ledger_entry_id}."}
 
 
-@router.post("/tamper")
+@router.post("/tamper", **doc(DemoResult))
 def tamper() -> dict:
     """Edit one sealed entry behind the ledger's back -> verify() points at it."""
     with conn() as c:
@@ -145,7 +147,7 @@ def seed() -> None:
         now - timedelta(hours=3))
 
 
-@router.post("/reset")
+@router.post("/reset", **doc(DemoResult))
 def reset() -> dict:
     """Wipe everything, then replay Riya's story so the console never starts empty."""
     reset_db()
@@ -154,7 +156,7 @@ def reset() -> dict:
                                    "delivered, with dispute PP-D-12345 waiting for your approval."}
 
 
-@router.post("/sandbox_invoice")
+@router.post("/sandbox_invoice", **doc(DemoResult))
 def sandbox_invoice() -> dict:
     """Create a real invoice in the PayPal sandbox. Paying it fires a real, signed webhook."""
     from app.config import get_settings
@@ -184,7 +186,7 @@ def sandbox_invoice() -> dict:
                        "PayPal's signed webhook will mark it paid here."}
 
 
-@router.post("/sandbox_record_payment")
+@router.post("/sandbox_record_payment", **doc(DemoResult))
 def sandbox_record_payment() -> dict:
     """Backup for flaky sandbox checkout: record payment on the newest unpaid sandbox invoice.
 

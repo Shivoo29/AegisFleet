@@ -10,6 +10,7 @@ from app.paypal.webhooks import router as webhook_router
 from app.db import init_schema
 
 app = FastAPI(
+    generate_unique_id_function=lambda r: r.name,  # operationIds become SDK method names
     title="AegisFleet",
     version="1.0.0",
     description=(
@@ -39,6 +40,7 @@ app.include_router(webhook_router)
 
 @app.get("/healthz")
 async def healthz() -> dict:
+    """Liveness probe for Render and the keep-alive ping. No auth."""
     return {"ok": True}
 
 

@@ -5,6 +5,7 @@ import json
 import secrets
 import time
 from datetime import datetime, timezone
+from typing import Literal
 from uuid import uuid4
 
 from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
@@ -13,8 +14,11 @@ from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from app.config import get_settings
 from app.db import conn
 from app.ledger import find as ledger_find, verify
+from app import schemas as S
+from app.schemas import doc
 
-router = APIRouter(prefix="/api", tags=["console"])
+router = APIRouter(prefix="/api", tags=["console"],
+                   responses={401: {"description": "Login required: HTTP Basic or the session cookie"}})
 security = HTTPBasic(auto_error=False)
 COOKIE = "aegis_session"
 SESSION_HOURS = 12
@@ -60,8 +64,10 @@ def _basic_auth(request: Request, credentials: HTTPBasicCredentials | None = Dep
     raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="login required")
 
 
-@router.post("/login")
-def login(body: dict, request: Request, response: Response) -> dict:
+@router.post("/login", **doc(S.Me))
+def login(body: S.LoginBody, request: Request, response: Response) -> dict:
+    """Check a username and password and set a 12-hour session cookie."""
+    body = body.model_dump()
     username, password = str(body.get("username", "")).strip(), str(body.get("password", ""))
     role = _role_for(username, password)
     if role is None or (role == "dev" and username != "dev"):
@@ -74,19 +80,22 @@ def login(body: dict, request: Request, response: Response) -> dict:
     return {"user": username, "role": role}
 
 
-@router.post("/logout")
+@router.post("/logout", **doc(S.Ok))
 def logout(response: Response) -> dict:
+    """Clear the session cookie."""
     response.delete_cookie(COOKIE, path="/")
     return {"ok": True}
 
 
-@router.get("/me")
+@router.get("/me", **doc(S.Me))
 def me(user: str = Depends(_basic_auth)) -> dict:
+    """Who is logged in, and whether they are the seller (dev) or a read-mostly judge."""
     return {"user": user, "role": "judge" if user == "judge" else "dev"}
 
 
-@router.get("/summary", dependencies=[Depends(_basic_auth)])
+@router.get("/summary", dependencies=[Depends(_basic_auth)], **doc(S.Summary))
 def summary() -> dict:
+    """Overview numbers: money waiting on approval, open disputes, overdue invoices, health, chain state."""
     with conn() as c:
         with c.cursor() as cur:
             cur.execute("SELECT COUNT(*) AS n FROM approvals WHERE status='pending'")
@@ -113,18 +122,21 @@ def summary() -> dict:
     }
 
 
-@router.get("/ledger", dependencies=[Depends(_basic_auth)])
+@router.get("/ledger", dependencies=[Depends(_basic_auth)], **doc(S.Ledger))
 def ledger(kind: str | None = None, subject_id: str | None = None, limit: int = 100) -> list:
+    """Proof Ledger entries, newest first. Each entry's hash covers the previous one."""
     return [e.model_dump() for e in ledger_find(kind=kind, subject_id=subject_id, limit=limit)]
 
 
-@router.get("/ledger/verify", dependencies=[Depends(_basic_auth)])
+@router.get("/ledger/verify", dependencies=[Depends(_basic_auth)], **doc(S.ChainVerify))
 def ledger_verify() -> dict:
+    """Recompute every hash in the chain and report the first entry that no longer matches."""
     return verify()
 
 
-@router.get("/approvals", dependencies=[Depends(_basic_auth)])
+@router.get("/approvals", dependencies=[Depends(_basic_auth)], **doc(list[S.Approval]))
 def approvals(status: str = "pending") -> list:
+    """Agent actions the gateway held for a human decision (over the money cap)."""
     with conn() as c:
         with c.cursor() as cur:
             cur.execute(
@@ -135,9 +147,11 @@ def approvals(status: str = "pending") -> list:
     return rows
 
 
-@router.post("/approvals/{approval_id}/{action}", dependencies=[Depends(_basic_auth)])
-def decide_approval(approval_id: str, action: str, body: dict | None = None,
+@router.post("/approvals/{approval_id}/{action}", dependencies=[Depends(_basic_auth)], **doc(S.ApprovalResult))
+def decide_approval(approval_id: str, action: Literal["approve", "reject"], body: S.ApprovalBody | None = None,
                     user: str = Depends(_basic_auth)) -> dict:
+    """Approve (the gateway then executes the held action) or reject it. Both are sealed."""
+    body = body.model_dump() if body else None
     from app.gateway import gateway
     if action not in ("approve", "reject"):
         raise HTTPException(404, "action must be approve or reject")
@@ -152,8 +166,9 @@ def decide_approval(approval_id: str, action: str, body: dict | None = None,
     return {"status": "approved", "decision": d.model_dump()}
 
 
-@router.get("/runs", dependencies=[Depends(_basic_auth)])
+@router.get("/runs", dependencies=[Depends(_basic_auth)], **doc(list[S.AgentRun]))
 def runs(limit: int = 20) -> list:
+    """Recent agent runs with their steps and structured output."""
     with conn() as c:
         with c.cursor() as cur:
             cur.execute(
@@ -164,14 +179,17 @@ def runs(limit: int = 20) -> list:
     return rows
 
 
-@router.get("/killswitch", dependencies=[Depends(_basic_auth)])
+@router.get("/killswitch", dependencies=[Depends(_basic_auth)], **doc(S.KillSwitch))
 def get_killswitch() -> dict:
+    """Is the kill switch on?"""
     from app.gateway.rules import kill_switch_active
     return {"on": kill_switch_active()}
 
 
-@router.post("/killswitch", dependencies=[Depends(_basic_auth)])
-def post_killswitch(body: dict) -> dict:
+@router.post("/killswitch", dependencies=[Depends(_basic_auth)], **doc(S.KillSwitch))
+def post_killswitch(body: S.KillSwitchBody) -> dict:
+    """Turn the kill switch on or off. While on, the gateway denies every agent action."""
+    body = body.model_dump()
     val = "true" if body.get("on") else "false"
     with conn() as c:
         with c.cursor() as cur:
@@ -184,9 +202,10 @@ def post_killswitch(body: dict) -> dict:
     return {"on": val == "true"}
 
 
-@router.post("/inbox", dependencies=[Depends(_basic_auth)])
-def inbox(body: dict) -> dict:
+@router.post("/inbox", dependencies=[Depends(_basic_auth)], **doc(S.InboxVerdict))
+def inbox(body: S.InboxEmail) -> dict:
     """Run Sentinel inline (a few seconds) so the console gets the verdict in one call."""
+    body = body.model_dump(by_alias=True, exclude_none=True)
     from app.events import route, store_event
     from app.models import Event
     ev = Event(
@@ -225,13 +244,16 @@ def _latest_disputes() -> list:
     return sorted((_dispute_row(e) for e in rows), key=lambda d: d["created_at"], reverse=True)
 
 
-@router.get("/disputes", dependencies=[Depends(_basic_auth)])
+@router.get("/disputes", dependencies=[Depends(_basic_auth)], **doc(list[S.Dispute]))
 def disputes() -> list:
+    """Latest state of every PayPal dispute, newest first."""
     return _latest_disputes()
 
 
-@router.get("/disputes/{dispute_id}", dependencies=[Depends(_basic_auth)])
+@router.get("/disputes/{dispute_id}", dependencies=[Depends(_basic_auth)],
+            **doc(S.DisputeDetail, extra={404: {"description": "No such dispute"}}))
 def dispute_detail(dispute_id: str) -> dict:
+    """One dispute with Defender's evidence pack and the pending approval to submit it."""
     found = [d for d in _latest_disputes() if d["id"] == dispute_id]
     if not found:
         raise HTTPException(404, "dispute not found")
@@ -243,8 +265,9 @@ def dispute_detail(dispute_id: str) -> dict:
             "approval_id": apr[0]["id"] if apr else None}
 
 
-@router.get("/invoices", dependencies=[Depends(_basic_auth)])
+@router.get("/invoices", dependencies=[Depends(_basic_auth)], **doc(list[S.Invoice]))
 def invoices() -> list:
+    """Invoices with paid/overdue status, risk, shipment and PayPal payment link."""
     paid = {r["subject_id"]: r["created_at"] for r in _rows(
         "SELECT subject_id, min(created_at) AS created_at FROM ledger WHERE kind='event' "
         "AND payload->>'verified'='true' AND payload->>'type' IN ('payment.captured','invoice.paid') "
@@ -267,9 +290,10 @@ def invoices() -> list:
     return out
 
 
-@router.post("/shipments", dependencies=[Depends(_basic_auth)])
-def shipments(body: dict) -> dict:
+@router.post("/shipments", dependencies=[Depends(_basic_auth)], **doc(S.ShipmentResult))
+def shipments(body: S.ShipmentBody) -> dict:
     """Seller adds tracking: store it, then fire shipment.created (sealed + routed to Guardian)."""
+    body = body.model_dump()
     from app.events import route, store_event
     from app.models import Event
     inv, tn = body.get("invoice_id"), body.get("tracking_number")
@@ -289,7 +313,7 @@ def shipments(body: dict) -> dict:
     return {"ok": True, "sealed": True, "run_id": run.get("run_id")}
 
 
-@router.get("/health", dependencies=[Depends(_basic_auth)])
+@router.get("/health", dependencies=[Depends(_basic_auth)], **doc(S.Health))
 def health() -> dict:
     """Score and factors are recomputed from the ledger on every call, so a dispute that
     arrived after Guardian's last run still counts. Guardian's AI recommendations are

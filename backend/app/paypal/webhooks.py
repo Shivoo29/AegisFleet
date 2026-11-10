@@ -73,6 +73,7 @@ def _verified(request: Request, body: dict) -> bool:
 
 @router.post("/webhooks/paypal")
 async def paypal_webhook(request: Request, background_tasks: BackgroundTasks) -> dict:
+    """PayPal calls this. The signature is verified with PayPal before the event is sealed and routed."""
     body = await request.json()
     our_type = TYPES.get(body.get("event_type", ""))
     if not our_type or not body.get("id"):
