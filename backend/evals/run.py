@@ -153,9 +153,11 @@ def run_defender(pause: float = 0.0) -> int:
             missing_citations = []
         latency_ms = (time.perf_counter() - started) * 1000
         invalid_llm = any("llm error" in step.get("summary", "") for step in ctx.steps)
+        ai_note = any("AI-written note accepted" in step.get("summary", "") for step in ctx.steps)
         results.append(
             {
                 "fixture": path.name,
+                "ai_note": ai_note,
                 "expected": data["expected_action"],
                 "predicted": predicted,
                 "expected_classification": data.get("expected_classification"),
@@ -177,12 +179,14 @@ def run_defender(pause: float = 0.0) -> int:
     invalid = sum(1 for r in results if r["invalid_llm"])
     avg_latency = statistics.mean(r["latency_ms"] for r in results) if results else 0.0
     class_rate = class_correct / len(classified) * 100 if classified else 100.0
+    ai_notes = sum(1 for r in results if r["ai_note"])
 
     print(f"{'agent':<10}{'n':>4}{'action_acc':>12}{'class_acc':>11}{'uncited_facts':>15}{'invalid_json':>14}{'avg_latency_ms':>16}")
     print(
         f"{'defender':<10}{n:>4}{correct / n * 100:>11.1f}%{class_rate:>10.1f}%{missing:>15}"
         f"{invalid / n * 100:>13.1f}%{avg_latency:>16.1f}"
     )
+    print(f"AI-written notes to PayPal accepted by the citation check: {ai_notes}/{n} (others used the template)")
 
     for result in results:
         if result["predicted"] != result["expected"]:

@@ -25,7 +25,9 @@ then return an evidence pack that helps the seller respond honestly to PayPal.
    (for example, a delivered item reported as not received, or an unauthorized claim with a
    signed delivery and a friendly buyer message). `genuine` means the seller lacks enough
    evidence, shipped late, or the buyer has a real item-quality issue.
-5. `note_to_paypal` must be short, factual, and cite ledger entry ids. No speculation.
+5. `note_to_paypal` is what PayPal's reviewer reads: 3-5 plain sentences, factual, no speculation.
+   Cite every claim as `(ledger #N)` using only ids from the facts you were given. A note that
+   cites any other id, or no id, is thrown away and replaced with a template.
 
 ## Recommended action
 

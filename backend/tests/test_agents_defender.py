@@ -154,3 +154,14 @@ def test_llm_cannot_add_uncited_facts(monkeypatch) -> None:
 
     assert all(fact.ledger_entry_id != 999999 for fact in out.facts)
     assert out.recommended_action != "provide_evidence"
+
+
+def test_ai_note_only_kept_when_every_citation_is_evidence() -> None:
+    from app.agents.defender import _grounded
+    from app.models import Fact
+    facts = [Fact(claim="paid", ledger_entry_id=3), Fact(claim="delivered", ledger_entry_id=7)]
+    ok, _ = _grounded("Paid in full (ledger #3). Delivered to the address on file (ledger #7).", facts)
+    assert ok
+    assert _grounded("Delivered (ledger #9).", facts)[0] is None          # #9 is not evidence
+    assert _grounded("The buyer is lying.", facts)[0] is None              # cites nothing
+    assert _grounded("See proof at https://x.io (ledger #3).", facts)[0] is None

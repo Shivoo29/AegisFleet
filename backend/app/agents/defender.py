@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+import re
 from datetime import date, datetime, timedelta, timezone
 
 from app.agents.base import AgentContext, load_prompt
@@ -249,6 +250,26 @@ def _note(
     return " ".join(parts)
 
 
+CITE = re.compile(r"#(\d+)")
+
+
+def _grounded(text: str, facts: list[Fact]) -> tuple[str | None, str]:
+    """Accept the model's note only if every ledger id it cites is one of our facts, it cites at least one,
+    and it carries no links or addresses. Otherwise the rule-built note is used. Returns (note or None, why)."""
+    text = (text or "").strip()
+    allowed = {f.ledger_entry_id for f in facts}
+    cited = {int(x) for x in CITE.findall(text)}
+    if not text or len(text) > 1500:
+        return None, "empty or too long"
+    if not cited:
+        return None, "cites no ledger entries"
+    if not cited <= allowed:
+        return None, f"cites entries that are not evidence: {sorted(cited - allowed)}"
+    if re.search(r"https?://|www\.|@", text):
+        return None, "contains a link or address"
+    return text, f"{len(cited)} ledger citations, all verified"
+
+
 def _action_args(action: str, dispute_id: str, note: str, amount_cents: int | None, currency: str) -> tuple[str, dict]:
     if action == "provide_evidence":
         return "provide_dispute_evidence", {
@@ -310,6 +331,7 @@ def handle(event: Event, ctx: AgentContext) -> EvidencePack:
 
     facts = _facts(payment, shipment, delivery, address_match, messages, invoice_id, amount_cents, currency)
     classification, confidence = _classify(reason, checklist, buyer_received)
+    llm_pack = None
     try:
         prompt = load_prompt("defender")
         untrusted = json.dumps({
@@ -327,6 +349,12 @@ def handle(event: Event, ctx: AgentContext) -> EvidencePack:
     if action == "offer_refund" and not amount_cents:
         action = "accept_claim"
     note = _note(dispute_id, reason, checklist, facts, amount_cents, currency)
+    if llm_pack is not None:
+        written, why = _grounded(llm_pack.note_to_paypal, facts)
+        if written:
+            note = f"{written} Evidence checklist: " + ", ".join(
+                f"{k}={'yes' if v else 'no'}" for k, v in checklist.items()) + "."
+        ctx.log("note", f"defender: AI-written note {'accepted' if written else 'rejected'} ({why})")
     tool, args = _action_args(action, dispute_id, note, amount_cents, currency)
     decision = ctx.tool(tool, args, f"Defender recommends {action} for {dispute_id}")
     ctx.log("note", f"defender: action={action} tool={tool} outcome={decision.outcome}")

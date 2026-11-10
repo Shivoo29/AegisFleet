@@ -212,7 +212,7 @@ def sandbox_record_payment() -> dict:
             return {"ok": True, "invoice_id": row["id"],
                     "message": f"{row['id']} is already paid in PayPal. Its signed webhook marks it paid here "
                                "within a minute; check Invoices."}
-        c.record_invoice_payment({"invoice_id": pp_id, "amount_cents": 60000,
+        c.record_invoice_payment({"invoice_id": pp_id, "amount_cents": int(row["data"].get("amount_cents") or 60000),
                                   "currency": "USD", "note": "Paid by bank transfer"})
     except httpx.HTTPStatusError as e:
         raise HTTPException(502, f"PayPal refused: {e.response.status_code}. Try 'Real PayPal invoice' again.")
