@@ -1,6 +1,7 @@
 {
   "openapi": "3.1.0",
   "info": {
+    "title": "AegisFleet",
     "description": "Seller console API for AegisFleet: AI agents that guard a PayPal seller's payments, disputes, invoices and shipments. Agents never call PayPal directly; every action passes a guardrail gateway (kill switch, allowlist, caps, human approval) and is sealed into a hash-chained Proof Ledger.\n\nAuthenticate with HTTP Basic (`dev` or `judge`) or the session cookie set by `POST /api/login`.",
     "version": "1.0.0"
   },
@@ -167,7 +168,8 @@
                 {
                   "type": "null"
                 }
-              ]
+              ],
+              "title": "Kind"
             }
           },
           {
@@ -182,7 +184,8 @@
                 {
                   "type": "null"
                 }
-              ]
+              ],
+              "title": "Subject Id"
             }
           },
           {
@@ -191,7 +194,8 @@
             "required": false,
             "schema": {
               "type": "integer",
-              "default": 100
+              "default": 100,
+              "title": "Limit"
             }
           }
         ],
@@ -204,7 +208,8 @@
                   "type": "array",
                   "items": {
                     "$ref": "#/components/schemas/LedgerEntry"
-                  }
+                  },
+                  "title": "Response 200 Ledger"
                 }
               }
             }
@@ -275,7 +280,8 @@
             "required": false,
             "schema": {
               "type": "string",
-              "default": "pending"
+              "default": "pending",
+              "title": "Status"
             }
           }
         ],
@@ -288,7 +294,8 @@
                   "type": "array",
                   "items": {
                     "$ref": "#/components/schemas/Approval"
-                  }
+                  },
+                  "title": "Response 200 Approvals"
                 }
               }
             }
@@ -328,7 +335,8 @@
             "in": "path",
             "required": true,
             "schema": {
-              "type": "string"
+              "type": "string",
+              "title": "Approval Id"
             }
           },
           {
@@ -340,7 +348,8 @@
                 "approve",
                 "reject"
               ],
-              "type": "string"
+              "type": "string",
+              "title": "Action"
             }
           }
         ],
@@ -355,7 +364,8 @@
                   {
                     "type": "null"
                   }
-                ]
+                ],
+                "title": "Body"
               }
             }
           }
@@ -407,7 +417,8 @@
             "required": false,
             "schema": {
               "type": "integer",
-              "default": 20
+              "default": 20,
+              "title": "Limit"
             }
           }
         ],
@@ -420,7 +431,8 @@
                   "type": "array",
                   "items": {
                     "$ref": "#/components/schemas/AgentRun"
-                  }
+                  },
+                  "title": "Response 200 Runs"
                 }
               }
             }
@@ -586,7 +598,8 @@
                   "items": {
                     "$ref": "#/components/schemas/Dispute"
                   },
-                  "type": "array"
+                  "type": "array",
+                  "title": "Response 200 Disputes"
                 }
               }
             }
@@ -621,7 +634,8 @@
             "in": "path",
             "required": true,
             "schema": {
-              "type": "string"
+              "type": "string",
+              "title": "Dispute Id"
             }
           }
         ],
@@ -672,7 +686,8 @@
                   "items": {
                     "$ref": "#/components/schemas/Invoice"
                   },
-                  "type": "array"
+                  "type": "array",
+                  "title": "Response 200 Invoices"
                 }
               }
             }
@@ -782,7 +797,8 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object"
+                  "type": "object",
+                  "title": "Response Demo Status"
                 }
               }
             }
@@ -1025,7 +1041,8 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object"
+                  "type": "object",
+                  "title": "Response Paypal Webhook"
                 }
               }
             }
@@ -1044,7 +1061,8 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object"
+                  "type": "object",
+                  "title": "Response Healthz"
                 }
               }
             }
@@ -1058,20 +1076,25 @@
       "AgentRun": {
         "properties": {
           "id": {
-            "type": "string"
+            "type": "string",
+            "title": "Id"
           },
           "agent": {
-            "type": "string"
+            "type": "string",
+            "title": "Agent"
           },
           "event_type": {
-            "type": "string"
+            "type": "string",
+            "title": "Event Type"
           },
           "status": {
-            "type": "string"
+            "type": "string",
+            "title": "Status"
           },
           "steps": {
             "items": {},
-            "type": "array"
+            "type": "array",
+            "title": "Steps"
           },
           "output": {
             "anyOf": [
@@ -1081,11 +1104,13 @@
               {
                 "type": "null"
               }
-            ]
+            ],
+            "title": "Output"
           },
           "started_at": {
             "type": "string",
-            "format": "date-time"
+            "format": "date-time",
+            "title": "Started At"
           }
         },
         "type": "object",
@@ -1096,24 +1121,30 @@
           "status",
           "steps",
           "started_at"
-        ]
+        ],
+        "title": "AgentRun"
       },
       "Approval": {
         "properties": {
           "id": {
-            "type": "string"
+            "type": "string",
+            "title": "Id"
           },
           "agent": {
-            "type": "string"
+            "type": "string",
+            "title": "Agent"
           },
           "tool": {
-            "type": "string"
+            "type": "string",
+            "title": "Tool"
           },
           "args": {
-            "type": "object"
+            "type": "object",
+            "title": "Args"
           },
           "reason": {
-            "type": "string"
+            "type": "string",
+            "title": "Reason"
           },
           "summary": {
             "anyOf": [
@@ -1123,7 +1154,8 @@
               {
                 "type": "null"
               }
-            ]
+            ],
+            "title": "Summary"
           },
           "amount_cents": {
             "anyOf": [
@@ -1133,7 +1165,8 @@
               {
                 "type": "null"
               }
-            ]
+            ],
+            "title": "Amount Cents"
           },
           "currency": {
             "anyOf": [
@@ -1143,7 +1176,8 @@
               {
                 "type": "null"
               }
-            ]
+            ],
+            "title": "Currency"
           },
           "status": {
             "type": "string",
@@ -1151,11 +1185,13 @@
               "pending",
               "approved",
               "rejected"
-            ]
+            ],
+            "title": "Status"
           },
           "created_at": {
             "type": "string",
-            "format": "date-time"
+            "format": "date-time",
+            "title": "Created At"
           }
         },
         "type": "object",
@@ -1167,17 +1203,20 @@
           "reason",
           "status",
           "created_at"
-        ]
+        ],
+        "title": "Approval"
       },
       "ApprovalBody": {
         "properties": {
           "note": {
             "type": "string",
+            "title": "Note",
             "description": "Optional reason, sealed into the ledger with the decision",
             "default": ""
           }
         },
-        "type": "object"
+        "type": "object",
+        "title": "ApprovalBody"
       },
       "ApprovalResult": {
         "properties": {
@@ -1186,7 +1225,8 @@
             "enum": [
               "approved",
               "rejected"
-            ]
+            ],
+            "title": "Status"
           },
           "decision": {
             "anyOf": [
@@ -1202,15 +1242,18 @@
         "type": "object",
         "required": [
           "status"
-        ]
+        ],
+        "title": "ApprovalResult"
       },
       "ChainVerify": {
         "properties": {
           "ok": {
-            "type": "boolean"
+            "type": "boolean",
+            "title": "Ok"
           },
           "checked": {
-            "type": "integer"
+            "type": "integer",
+            "title": "Checked"
           },
           "broken_at": {
             "anyOf": [
@@ -1221,6 +1264,7 @@
                 "type": "null"
               }
             ],
+            "title": "Broken At",
             "description": "First ledger id whose hash no longer matches"
           }
         },
@@ -1228,7 +1272,8 @@
         "required": [
           "ok",
           "checked"
-        ]
+        ],
+        "title": "ChainVerify"
       },
       "Decision": {
         "properties": {
@@ -1238,10 +1283,12 @@
               "allow",
               "hold",
               "deny"
-            ]
+            ],
+            "title": "Outcome"
           },
           "reason": {
-            "type": "string"
+            "type": "string",
+            "title": "Reason"
           },
           "approval_id": {
             "anyOf": [
@@ -1251,7 +1298,8 @@
               {
                 "type": "null"
               }
-            ]
+            ],
+            "title": "Approval Id"
           },
           "result": {
             "anyOf": [
@@ -1261,10 +1309,12 @@
               {
                 "type": "null"
               }
-            ]
+            ],
+            "title": "Result"
           },
           "ledger_entry_id": {
-            "type": "integer"
+            "type": "integer",
+            "title": "Ledger Entry Id"
           }
         },
         "type": "object",
@@ -1272,15 +1322,18 @@
           "outcome",
           "reason",
           "ledger_entry_id"
-        ]
+        ],
+        "title": "Decision"
       },
       "DemoResult": {
         "properties": {
           "ok": {
-            "type": "boolean"
+            "type": "boolean",
+            "title": "Ok"
           },
           "message": {
             "type": "string",
+            "title": "Message",
             "description": "What happened, in plain words, for the console toast"
           }
         },
@@ -1289,12 +1342,14 @@
         "required": [
           "ok",
           "message"
-        ]
+        ],
+        "title": "DemoResult"
       },
       "Dispute": {
         "properties": {
           "id": {
-            "type": "string"
+            "type": "string",
+            "title": "Id"
           },
           "invoice_id": {
             "anyOf": [
@@ -1304,13 +1359,16 @@
               {
                 "type": "null"
               }
-            ]
+            ],
+            "title": "Invoice Id"
           },
           "reason": {
-            "type": "string"
+            "type": "string",
+            "title": "Reason"
           },
           "status": {
-            "type": "string"
+            "type": "string",
+            "title": "Status"
           },
           "amount_cents": {
             "anyOf": [
@@ -1320,7 +1378,8 @@
               {
                 "type": "null"
               }
-            ]
+            ],
+            "title": "Amount Cents"
           },
           "currency": {
             "anyOf": [
@@ -1330,7 +1389,8 @@
               {
                 "type": "null"
               }
-            ]
+            ],
+            "title": "Currency"
           },
           "buyer_name": {
             "anyOf": [
@@ -1340,11 +1400,13 @@
               {
                 "type": "null"
               }
-            ]
+            ],
+            "title": "Buyer Name"
           },
           "created_at": {
             "type": "string",
-            "format": "date-time"
+            "format": "date-time",
+            "title": "Created At"
           },
           "due_by": {
             "anyOf": [
@@ -1354,7 +1416,8 @@
               {
                 "type": "null"
               }
-            ]
+            ],
+            "title": "Due By"
           }
         },
         "type": "object",
@@ -1363,7 +1426,8 @@
           "reason",
           "status",
           "created_at"
-        ]
+        ],
+        "title": "Dispute"
       },
       "DisputeDetail": {
         "properties": {
@@ -1379,6 +1443,7 @@
                 "type": "null"
               }
             ],
+            "title": "Evidence Pack",
             "description": "Defender's evidence pack, every fact citing a ledger id"
           },
           "approval_id": {
@@ -1389,13 +1454,15 @@
               {
                 "type": "null"
               }
-            ]
+            ],
+            "title": "Approval Id"
           }
         },
         "type": "object",
         "required": [
           "dispute"
-        ]
+        ],
+        "title": "DisputeDetail"
       },
       "HTTPValidationError": {
         "properties": {
@@ -1403,27 +1470,32 @@
             "items": {
               "$ref": "#/components/schemas/ValidationError"
             },
-            "type": "array"
+            "type": "array",
+            "title": "Detail"
           }
         },
-        "type": "object"
+        "type": "object",
+        "title": "HTTPValidationError"
       },
       "Health": {
         "properties": {
           "score": {
-            "type": "integer"
+            "type": "integer",
+            "title": "Score"
           },
           "factors": {
             "items": {
               "$ref": "#/components/schemas/HealthFactor"
             },
-            "type": "array"
+            "type": "array",
+            "title": "Factors"
           },
           "recommendations": {
             "items": {
               "type": "string"
             },
-            "type": "array"
+            "type": "array",
+            "title": "Recommendations"
           },
           "appeal_pack": {
             "anyOf": [
@@ -1433,7 +1505,8 @@
               {
                 "type": "null"
               }
-            ]
+            ],
+            "title": "Appeal Pack"
           }
         },
         "type": "object",
@@ -1441,19 +1514,25 @@
           "score",
           "factors",
           "recommendations"
-        ]
+        ],
+        "title": "Health"
       },
       "HealthFactor": {
         "properties": {
           "name": {
-            "type": "string"
+            "type": "string",
+            "title": "Name"
           },
-          "value": {},
+          "value": {
+            "title": "Value"
+          },
           "impact": {
-            "type": "string"
+            "type": "string",
+            "title": "Impact"
           },
           "note": {
-            "type": "string"
+            "type": "string",
+            "title": "Note"
           }
         },
         "type": "object",
@@ -1462,7 +1541,8 @@
           "value",
           "impact",
           "note"
-        ]
+        ],
+        "title": "HealthFactor"
       },
       "InboxEmail": {
         "properties": {
@@ -1475,6 +1555,7 @@
                 "type": "null"
               }
             ],
+            "title": "Subject Id",
             "examples": [
               "INV-0007"
             ]
@@ -1488,6 +1569,7 @@
                 "type": "null"
               }
             ],
+            "title": "Invoice Id",
             "examples": [
               "INV-0007"
             ]
@@ -1501,6 +1583,7 @@
                 "type": "null"
               }
             ],
+            "title": "From",
             "examples": [
               "service@paypa1-support.com"
             ]
@@ -1514,6 +1597,7 @@
                 "type": "null"
               }
             ],
+            "title": "Subject",
             "examples": [
               "Payment received: $600.00"
             ]
@@ -1527,13 +1611,15 @@
                 "type": "null"
               }
             ],
+            "title": "Body",
             "examples": [
               "You have received a payment of $600.00. Ship the order now."
             ]
           }
         },
         "additionalProperties": true,
-        "type": "object"
+        "type": "object",
+        "title": "InboxEmail"
       },
       "InboxVerdict": {
         "properties": {
@@ -1545,7 +1631,8 @@
               {
                 "type": "null"
               }
-            ]
+            ],
+            "title": "Run Id"
           },
           "status": {
             "anyOf": [
@@ -1555,7 +1642,8 @@
               {
                 "type": "null"
               }
-            ]
+            ],
+            "title": "Status"
           },
           "verdict": {
             "anyOf": [
@@ -1566,15 +1654,18 @@
                 "type": "null"
               }
             ],
+            "title": "Verdict",
             "description": "Sentinel verdict: scam | legit | unsure, with red flags"
           }
         },
-        "type": "object"
+        "type": "object",
+        "title": "InboxVerdict"
       },
       "Invoice": {
         "properties": {
           "id": {
-            "type": "string"
+            "type": "string",
+            "title": "Id"
           },
           "buyer_email": {
             "anyOf": [
@@ -1584,7 +1675,8 @@
               {
                 "type": "null"
               }
-            ]
+            ],
+            "title": "Buyer Email"
           },
           "amount_cents": {
             "anyOf": [
@@ -1594,10 +1686,12 @@
               {
                 "type": "null"
               }
-            ]
+            ],
+            "title": "Amount Cents"
           },
           "currency": {
-            "type": "string"
+            "type": "string",
+            "title": "Currency"
           },
           "status": {
             "type": "string",
@@ -1605,10 +1699,12 @@
               "paid",
               "overdue",
               "sent"
-            ]
+            ],
+            "title": "Status"
           },
           "days_overdue": {
-            "type": "integer"
+            "type": "integer",
+            "title": "Days Overdue"
           },
           "risk": {
             "type": "string",
@@ -1616,10 +1712,12 @@
               "low",
               "medium",
               "high"
-            ]
+            ],
+            "title": "Risk"
           },
           "shipped": {
-            "type": "boolean"
+            "type": "boolean",
+            "title": "Shipped"
           },
           "tracking_number": {
             "anyOf": [
@@ -1629,7 +1727,8 @@
               {
                 "type": "null"
               }
-            ]
+            ],
+            "title": "Tracking Number"
           },
           "created_at": {
             "anyOf": [
@@ -1639,7 +1738,8 @@
               {
                 "type": "null"
               }
-            ]
+            ],
+            "title": "Created At"
           },
           "paid_at": {
             "anyOf": [
@@ -1650,7 +1750,8 @@
               {
                 "type": "null"
               }
-            ]
+            ],
+            "title": "Paid At"
           },
           "pay_url": {
             "anyOf": [
@@ -1660,7 +1761,8 @@
               {
                 "type": "null"
               }
-            ]
+            ],
+            "title": "Pay Url"
           }
         },
         "type": "object",
@@ -1671,33 +1773,39 @@
           "days_overdue",
           "risk",
           "shipped"
-        ]
+        ],
+        "title": "Invoice"
       },
       "KillSwitch": {
         "properties": {
           "on": {
-            "type": "boolean"
+            "type": "boolean",
+            "title": "On"
           }
         },
         "type": "object",
         "required": [
           "on"
-        ]
+        ],
+        "title": "KillSwitch"
       },
       "KillSwitchBody": {
         "properties": {
           "on": {
             "type": "boolean",
+            "title": "On",
             "description": "true stops every agent action at the gateway",
             "default": false
           }
         },
-        "type": "object"
+        "type": "object",
+        "title": "KillSwitchBody"
       },
       "LedgerEntry": {
         "properties": {
           "id": {
-            "type": "integer"
+            "type": "integer",
+            "title": "Id"
           },
           "kind": {
             "type": "string",
@@ -1707,26 +1815,33 @@
               "agent_step",
               "approval",
               "note"
-            ]
+            ],
+            "title": "Kind"
           },
           "subject_id": {
-            "type": "string"
+            "type": "string",
+            "title": "Subject Id"
           },
           "summary": {
-            "type": "string"
+            "type": "string",
+            "title": "Summary"
           },
           "payload": {
-            "type": "object"
+            "type": "object",
+            "title": "Payload"
           },
           "prev_hash": {
-            "type": "string"
+            "type": "string",
+            "title": "Prev Hash"
           },
           "hash": {
-            "type": "string"
+            "type": "string",
+            "title": "Hash"
           },
           "created_at": {
             "type": "string",
-            "format": "date-time"
+            "format": "date-time",
+            "title": "Created At"
           }
         },
         "type": "object",
@@ -1739,12 +1854,14 @@
           "prev_hash",
           "hash",
           "created_at"
-        ]
+        ],
+        "title": "LedgerEntry"
       },
       "LoginBody": {
         "properties": {
           "username": {
             "type": "string",
+            "title": "Username",
             "default": "",
             "examples": [
               "judge"
@@ -1752,43 +1869,50 @@
           },
           "password": {
             "type": "string",
+            "title": "Password",
             "default": "",
             "examples": [
               "<judge password>"
             ]
           }
         },
-        "type": "object"
+        "type": "object",
+        "title": "LoginBody"
       },
       "Me": {
         "properties": {
           "user": {
-            "type": "string"
+            "type": "string",
+            "title": "User"
           },
           "role": {
             "type": "string",
             "enum": [
               "dev",
               "judge"
-            ]
+            ],
+            "title": "Role"
           }
         },
         "type": "object",
         "required": [
           "user",
           "role"
-        ]
+        ],
+        "title": "Me"
       },
       "Ok": {
         "properties": {
           "ok": {
-            "type": "boolean"
+            "type": "boolean",
+            "title": "Ok"
           }
         },
         "type": "object",
         "required": [
           "ok"
-        ]
+        ],
+        "title": "Ok"
       },
       "ShipmentBody": {
         "properties": {
@@ -1801,6 +1925,7 @@
                 "type": "null"
               }
             ],
+            "title": "Invoice Id",
             "examples": [
               "INV-0007"
             ]
@@ -1814,27 +1939,32 @@
                 "type": "null"
               }
             ],
+            "title": "Tracking Number",
             "examples": [
               "1Z999AA10123456784"
             ]
           },
           "carrier": {
             "type": "string",
+            "title": "Carrier",
             "default": "OTHER",
             "examples": [
               "UPS"
             ]
           }
         },
-        "type": "object"
+        "type": "object",
+        "title": "ShipmentBody"
       },
       "ShipmentResult": {
         "properties": {
           "ok": {
-            "type": "boolean"
+            "type": "boolean",
+            "title": "Ok"
           },
           "sealed": {
-            "type": "boolean"
+            "type": "boolean",
+            "title": "Sealed"
           },
           "run_id": {
             "anyOf": [
@@ -1844,40 +1974,50 @@
               {
                 "type": "null"
               }
-            ]
+            ],
+            "title": "Run Id"
           }
         },
         "type": "object",
         "required": [
           "ok",
           "sealed"
-        ]
+        ],
+        "title": "ShipmentResult"
       },
       "Summary": {
         "properties": {
           "money_at_risk_cents": {
-            "type": "integer"
+            "type": "integer",
+            "title": "Money At Risk Cents"
           },
           "currency": {
-            "type": "string"
+            "type": "string",
+            "title": "Currency"
           },
           "pending_approvals": {
-            "type": "integer"
+            "type": "integer",
+            "title": "Pending Approvals"
           },
           "open_disputes": {
-            "type": "integer"
+            "type": "integer",
+            "title": "Open Disputes"
           },
           "overdue_invoices": {
-            "type": "integer"
+            "type": "integer",
+            "title": "Overdue Invoices"
           },
           "health_score": {
-            "type": "integer"
+            "type": "integer",
+            "title": "Health Score"
           },
           "kill_switch": {
-            "type": "boolean"
+            "type": "boolean",
+            "title": "Kill Switch"
           },
           "chain_ok": {
-            "type": "boolean"
+            "type": "boolean",
+            "title": "Chain Ok"
           }
         },
         "type": "object",
@@ -1890,7 +2030,8 @@
           "health_score",
           "kill_switch",
           "chain_ok"
-        ]
+        ],
+        "title": "Summary"
       },
       "ValidationError": {
         "properties": {
@@ -1905,13 +2046,16 @@
                 }
               ]
             },
-            "type": "array"
+            "type": "array",
+            "title": "Location"
           },
           "msg": {
-            "type": "string"
+            "type": "string",
+            "title": "Message"
           },
           "type": {
-            "type": "string"
+            "type": "string",
+            "title": "Error Type"
           }
         },
         "type": "object",
@@ -1919,7 +2063,8 @@
           "loc",
           "msg",
           "type"
-        ]
+        ],
+        "title": "ValidationError"
       }
     },
     "securitySchemes": {
