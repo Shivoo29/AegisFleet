@@ -47,7 +47,7 @@ The console (React + AG Grid) shows money at risk, approvals, the ledger, agent 
 Guardrails belong outside the model. A small gateway with allowlists, caps and human approval made the agents far easier to trust than any prompt instruction could.
 
 ## What's next
-- Wire Collector to a scheduler and a visible console action; v1 reacts to `invoice.overdue`, but the demo does not yet emit that event.
+- Add a production scheduler for Collector; the demo panel can already fire `invoice.overdue` with one click.
 - Refresh Guardian health immediately when a dispute opens, instead of waiting for the next Guardian payment, shipment, or delivery event.
 - Move from sandbox to production behind the same gateway, with per-seller limits.
 
@@ -75,7 +75,7 @@ The models never call PayPal. They return structured recommendations; the gatewa
 > Open https://aegisfleet.solvor.co.in and log in with username `judge`, password `<JUDGE_PASSWORD>`.
 > 1. A short guide points at each step. Start with **Demo → Reset** to load the scenario.
 > 2. **Real PayPal invoice** issues a real sandbox invoice. To pay it, use the sandbox buyer `<US sandbox buyer email>` / `<password>`, or click **Record payment (backup)**. The invoice turns *paid* within about a minute.
-> 3. Try **Fake payment email**, **Replay injection** and **Tamper**, then check Activity, Approvals and Ledger.
+> 3. Try **Overdue invoice reminder** to run Collector, then **Fake payment email**, **Replay injection** and **Tamper**. Check Invoices, Activity, Approvals and Ledger.
 > 4. Reset any time. Nothing real is connected: PayPal runs in sandbox, and live mode is refused in code.
 >
 > To run locally with no keys: see `SETUP.md` (fake PayPal and fake AI modes).

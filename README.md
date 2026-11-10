@@ -14,6 +14,8 @@ human move money.
 | **Collector** | `invoice.overdue` event | Scores risk deterministically, chooses tone and action, counts prior reminders from the ledger, and drafts a capped reminder. | No new amount, discount, waiver, or payment call. |
 | **Guardian** | Payment, shipment, or delivery event | Registers tracking, marks delivery, scores account health from ledger facts, and drafts appeal notes. | Health score is rule-based. Every appeal line cites a ledger entry, and PayPal writes stay behind the gateway. |
 
+The Demo panel has a one-click `invoice.overdue` beat: it seeds `INV-0006`, runs Collector, and the Invoices screen switches to Collector’s risk, tone, and next action.
+
 ## Safety invariants
 
 - Agents receive an `AgentContext`, not a database or PayPal client: they can only use `ctx.tool()`, `ctx.llm()`, and `ctx.ledger_find()`.
@@ -63,7 +65,7 @@ python -m evals.run --agent injection --reset
 |---|---:|---|
 | Sentinel | 20 | 20/20, 0 scams missed, 0 false alarms |
 | Defender | 8 | 8/8 action, 8/8 classification, 0 uncited facts |
-| Collector | 10 | 10/10 action, 10/10 classification |
+| Collector | 10 | 10/10 risk, 10/10 tone, 10/10 action |
 | Injection | 6 | 6/6 scam, 6/6 flagged, 0 tool calls, 6/6 disallowed tools denied |
 
 The injection suite also re-checks the gateway, so a fixture only passes when every tool it tries to invoke is denied.
