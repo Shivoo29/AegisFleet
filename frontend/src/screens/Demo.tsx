@@ -66,6 +66,7 @@ const CLIENTS: { name: string; steps: (url: string) => string }[] = [
   { name: 'Claude Code', steps: (u) => `claude mcp add --transport http aegisfleet "${u}"` },
   { name: 'Cursor / Windsurf', steps: (u) => `Add to mcp.json:\n{ "mcpServers": { "aegisfleet": { "url": "${u}" } } }` },
   { name: 'VS Code Copilot', steps: (u) => `Add to .vscode/mcp.json:\n{ "servers": { "aegisfleet": { "type": "http", "url": "${u}" } } }` },
+  { name: 'Antigravity', steps: (u) => `Agent panel → … → MCP Servers → Manage MCP Servers → View raw config, add:\n{ "mcpServers": { "aegisfleet": { "serverUrl": "${u}" } } }\nSave, then refresh the server list.` },
   { name: 'Gemini CLI', steps: (u) => `Add to ~/.gemini/settings.json:\n{ "mcpServers": { "aegisfleet": { "httpUrl": "${u}" } } }` },
   { name: 'Codex CLI', steps: (u) => `Add to ~/.codex/config.toml:\n[mcp_servers.aegisfleet]\nurl = "${u}"` },
 ]
