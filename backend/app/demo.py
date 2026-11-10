@@ -55,6 +55,17 @@ def delivered(bg: BackgroundTasks) -> dict:
             "message": f"Courier marked {DEMO_INVOICE} delivered. The event is sealed in the ledger."}
 
 
+@router.post("/overdue")
+def overdue(bg: BackgroundTasks) -> dict:
+    """INV-0006 slips 9 days past due -> Collector scores it and sends a capped, polite reminder."""
+    due = (datetime.now(timezone.utc) - timedelta(days=9)).isoformat()
+    return {**_fire("invoice.overdue", "scheduler",
+                    {"subject_id": "INV-0006", "invoice_id": "INV-0006", "amount_cents": 18500, "currency": "USD",
+                     "due_date": due, "client_history": {"total_invoices": 4, "late_invoices": 1}}, bg),
+            "message": "INV-0006 ($185.00) is 9 days overdue. Collector drafts a reminder; see it in Activity, "
+                       "and the gateway's cap in Ledger."}
+
+
 @router.post("/replay_injection")
 def replay_injection() -> dict:
     """An email told an agent to refund. Sentinel isn't allowed to refund -> gateway DENY, sealed."""

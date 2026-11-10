@@ -28,6 +28,12 @@ const BEATS: Beat[] = [
     path: '/api/demo/scam_email',
   },
   {
+    id: 'overdue',
+    title: 'Overdue invoice',
+    description: 'INV-0006 slips 9 days past due. Collector picks a tone and sends a capped reminder through the gateway.',
+    path: '/api/demo/overdue',
+  },
+  {
     id: 'delivered',
     title: 'Mark delivered',
     description: 'Simulate courier delivery for INV-0007 so Defender can build a strong evidence pack.',

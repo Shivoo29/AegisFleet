@@ -87,3 +87,13 @@ def test_health_counts_dispute_that_arrived_after_guardian() -> None:
     disputes = next(f for f in h["factors"] if f["name"] == "open_disputes")
     assert disputes["value"] == 1 and h["score"] < 100
     assert cl.get("/api/summary", auth=AUTH).json()["health_score"] == h["score"]
+
+
+def test_overdue_runs_collector_and_reminds() -> None:
+    cl = TestClient(app)
+    cl.post("/api/demo/reset", auth=AUTH)
+    assert cl.post("/api/demo/overdue", auth=AUTH).json()["ok"]
+    run = cl.get("/api/runs", auth=AUTH).json()[0]
+    assert run["agent"] == "collector" and run["status"] == "done"
+    assert run["output"]["next_action"] == "remind" and "INV-0006" in run["output"]["reminder_note"]
+    assert find(kind="decision", subject_id="INV-0006")
