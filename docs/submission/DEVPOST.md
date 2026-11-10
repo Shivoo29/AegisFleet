@@ -23,7 +23,7 @@ AegisFleet watches a seller's PayPal activity and runs AI agents behind a guardr
 - **The gateway** sits between every agent and PayPal. It checks the kill switch, a per-agent allowlist, argument validation and weekly caps, then **holds** anything that touches money until a human approves it in the console. An agent tricked into a refund is denied, and the attempt is recorded.
 - **The Proof Ledger** hash-chains every event, decision and approval. Editing any past record breaks verification at that exact entry.
 
-The console (React + AG Grid) shows money at risk, approvals, the ledger, agent activity, disputes and invoices, with a one-click demo panel.
+The console (React, AG Grid, Bryntum) shows money at risk, approvals, the ledger, agent activity, disputes and invoices, with a one-click demo panel.
 
 ## How we built it
 - **PayPal (sandbox):** Invoicing v2 (create, send, record payment), Webhooks (registration and `verify-webhook-signature` on every event), Disputes (get, message, provide evidence, make offer, accept claim), Shipment Tracking, Transaction Search and Payments refunds. The client does OAuth with token caching and a `PayPal-Request-Id` on every write, so retries never double-act.
@@ -36,6 +36,7 @@ The console (React + AG Grid) shows money at risk, approvals, the ledger, agent 
 ## Sponsor tools we built with
 - **AG Grid Community:** the Proof Ledger and Invoices tables. The ledger re-verifies the hash chain every few seconds; after a tamper the broken record pins to the top in red and every record after it is marked unproven. A link column shows ✓/✕ for each hash link, new records flash as they're sealed, clicking a row opens its full seal (both hashes and the raw payload), and the audit trail exports to CSV. Invoices flash when PayPal's signed webhook marks one paid, show an overdue bar and a pinned totals row, and link to each PayPal payment page.
 - **Render:** the whole app (FastAPI, the React console, the docs portal) and its Postgres database run from one blueprint, with the PayPal sandbox and Groq → Gemini → NVIDIA chain wired through Render env vars. A GitHub Actions ping keeps the free instance awake for judges.
+- **Bryntum Scheduler:** a Timeline tab puts every agent run, every action waiting on the seller's approval, overdue invoices and PayPal's dispute response deadlines on one schedule, with a live "now" line, so the seller sees at a glance what's due before PayPal decides for them.
 - **APIMatic:** our FastAPI spec, typed and described to APIMatic's linter (SDK readiness 99/100, AI-tool readiness 98/100), generates a docs portal with a live playground and Python/TypeScript/C# samples, plus Python and TypeScript SDKs committed in `apimatic/sdk/`. The portal is served at https://aegisfleet.solvor.co.in/docs, with `llms.txt` so a coding agent can build on AegisFleet.
 
 ## Challenges we ran into
@@ -58,7 +59,7 @@ Guardrails belong outside the model. A small gateway with allowlists, caps and h
 ---
 
 ## Built with
-python, fastapi, postgresql, react, typescript, vite, ag-grid, render, apimatic, paypal-invoicing, paypal-webhooks, paypal-disputes, paypal-shipment-tracking, groq, gemini, nvidia-nim
+python, fastapi, postgresql, react, typescript, vite, ag-grid, bryntum, render, apimatic, paypal-invoicing, paypal-webhooks, paypal-disputes, paypal-shipment-tracking, groq, gemini, nvidia-nim
 
 ## Tools used (AI)
 | Tool | Model | How we use it |

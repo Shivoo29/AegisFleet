@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { lazy, Suspense, useEffect, useState } from 'react'
 import { AnimatePresence, MotionConfig, motion } from 'motion/react'
 import { SPRING } from './components/Motion'
 import { USE_MOCKS, get } from './api'
@@ -15,6 +15,7 @@ import Invoices from './screens/Invoices'
 import Overview from './screens/Overview'
 import Health from './screens/Health'
 import Demo from './screens/Demo'
+const Timeline = lazy(() => import('./screens/Timeline'))  // Bryntum is big; load it only when opened
 
 const TABS = [
   'Overview',
@@ -24,6 +25,7 @@ const TABS = [
   'Inbox',
   'Disputes',
   'Invoices',
+  'Timeline',
   'Health',
   'Demo',
 ] as const
@@ -127,6 +129,7 @@ export default function App() {
             {active === 'Inbox' && <Inbox />}
             {active === 'Invoices' && <Invoices />}
             {active === 'Health' && <Health />}
+            {active === 'Timeline' && <Suspense fallback={null}><Timeline /></Suspense>}
             {active === 'Demo' && <Demo />}
           </motion.div>
         </AnimatePresence>

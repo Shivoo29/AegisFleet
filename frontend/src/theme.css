@@ -1148,3 +1148,10 @@ body::after {
 .seal__hashes dt { color: var(--muted); }
 .seal__hashes dd { margin: 0; font-family: var(--font-mono); overflow-wrap: anywhere; }
 .seal__payload { margin: 0; max-height: 260px; overflow: auto; overscroll-behavior: contain; background: var(--ink); color: #d7efe9; border-radius: 8px; padding: 0.8rem 1rem; font-family: var(--font-mono); font-size: 0.75rem; }
+
+/* Bryntum Scheduler (Timeline) */
+.timeline-host { height: 560px; border: 1px solid var(--border, #d9e2df); border-radius: 12px; overflow: hidden; }
+.timeline-host .b-grid-header { background: var(--ink, #0b3530); color: #fff; }
+.timeline-host .b-grid-header .b-grid-header-text, .timeline-host .b-sch-header-text { color: #e8f4f1; }
+.tl-role { font-size: 0.78rem; color: var(--text-muted, #5b6b67); }
+.tl-error .b-sch-event { background: #b42318 !important; }

@@ -19,3 +19,5 @@ node_modules/
 frontend/node_modules/
 *.log
 .env.local
+research_notes/
+reports/

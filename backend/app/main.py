@@ -2,6 +2,7 @@
 import os
 
 from fastapi import FastAPI
+from fastapi.responses import RedirectResponse
 from fastapi.staticfiles import StaticFiles
 
 from app.api import router as api_router
@@ -58,6 +59,11 @@ async def healthz() -> dict:
 
 _root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 _portal = os.path.join(_root, "apimatic", "portal")
+@app.get("/docs", include_in_schema=False)
+def _docs_slash() -> RedirectResponse:
+    return RedirectResponse("/docs/")
+
+
 if os.path.isdir(_portal):  # APIMatic docs portal: `apimatic portal generate` in apimatic/
     app.mount("/docs", StaticFiles(directory=_portal, html=True), name="docs")
 
