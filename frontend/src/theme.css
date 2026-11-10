@@ -1157,7 +1157,7 @@ body::after {
 .tl-error .b-sch-event { background: #b42318 !important; }
 
 /* Demo: connect an outside AI agent over MCP */
-.connect-agent { margin-bottom: 1.25rem; border-color: var(--ink, #0b3530); display: grid; gap: 0.6rem; }
+.connect-agent { margin-bottom: 1.25rem; display: grid; gap: 0.6rem; padding: 1.1rem 1.25rem; background: var(--surface, #fff); border: 1.5px solid var(--ink, #0b3530); border-radius: 14px; }
 .connect-agent__cmd {
   margin: 0; padding: 0.75rem 0.9rem; border-radius: 10px; background: var(--ink, #0b3530); color: #e8f4f1;
   font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 0.78rem; white-space: pre-wrap; word-break: break-all;
