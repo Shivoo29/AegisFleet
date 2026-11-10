@@ -9,7 +9,7 @@ from app.config import get_settings
 from app.events import route, store_event
 from app.models import Event
 
-router = APIRouter()
+router = APIRouter(tags=["webhooks"])
 log = logging.getLogger("aegis.webhooks")
 
 # PayPal event_type -> our EventType. Anything else is acknowledged and ignored.

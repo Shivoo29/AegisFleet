@@ -14,7 +14,7 @@ from app.config import get_settings
 from app.db import conn
 from app.ledger import find as ledger_find, verify
 
-router = APIRouter(prefix="/api")
+router = APIRouter(prefix="/api", tags=["console"])
 security = HTTPBasic(auto_error=False)
 COOKIE = "aegis_session"
 SESSION_HOURS = 12

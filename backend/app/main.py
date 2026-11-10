@@ -9,7 +9,22 @@ from app.demo import router as demo_router
 from app.paypal.webhooks import router as webhook_router
 from app.db import init_schema
 
-app = FastAPI(title="AegisFleet", version="0.1.0")
+app = FastAPI(
+    title="AegisFleet",
+    version="1.0.0",
+    description=(
+        "Seller console API for AegisFleet: AI agents that guard a PayPal seller's payments, disputes, "
+        "invoices and shipments. Agents never call PayPal directly; every action passes a guardrail "
+        "gateway (kill switch, allowlist, caps, human approval) and is sealed into a hash-chained Proof Ledger.\n\n"
+        "Authenticate with HTTP Basic (`dev` or `judge`) or the session cookie set by `POST /api/login`."
+    ),
+    servers=[{"url": "https://aegisfleet.solvor.co.in", "description": "Live demo (PayPal sandbox)"}],
+    openapi_tags=[
+        {"name": "console", "description": "Summary, Proof Ledger, approvals, agent runs, disputes, invoices, health."},
+        {"name": "demo", "description": "One-click story beats for judges (demo mode only)."},
+        {"name": "webhooks", "description": "PayPal webhook receiver; signatures are verified with PayPal before routing."},
+    ],
+)
 
 
 @app.on_event("startup")

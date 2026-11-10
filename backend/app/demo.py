@@ -23,7 +23,7 @@ def _demo_only():
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="demo mode disabled")
 
 
-router = APIRouter(prefix="/api/demo", dependencies=[Depends(_demo_only), Depends(_basic_auth)])
+router = APIRouter(prefix="/api/demo", tags=["demo"], dependencies=[Depends(_demo_only), Depends(_basic_auth)])
 
 
 def _fire(type_: str, source: str, data: dict, bg: BackgroundTasks) -> dict:
