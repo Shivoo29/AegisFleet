@@ -188,11 +188,11 @@ except Exception as e:
     raise e
 ```
 
-**Raw (`.with_raw_response`) variants: present on every operation** — the same call returns `ApiResult` instead of raising, with the same body on `Failure.error`. Of **31 operations**, **20 are Case A (typed)** and **11 are Case B (raw)**.
+**Raw (`.with_raw_response`) variants: present on every operation** — the same call returns `ApiResult` instead of raising, with the same body on `Failure.error`. Of **32 operations**, **21 are Case A (typed)** and **11 are Case B (raw)**.
 
 ---
 
-## Operations — by controller (4 pages, 31 operations)
+## Operations — by controller (4 pages, 32 operations)
 
 Each links to a sub-page with one block per operation, headed by its full accessor path: the HTTP verb and route (for a mock, a raw request or a provider-side log — never reconstruct it from the method name), the sync parsed signature with its required positional parameters, each parameter's role and — where it differs — wire name, both return types, and its error case — **Case A** names the alias and the status each arm maps from, **Case B** names `RawError`. Every block also carries a **Type sources** table — every *generated* type it names, with the module that declares it. A runtime type — a file alias, a date/time or byte converter — is not listed there.
 
@@ -214,7 +214,7 @@ Sub-pages chunk per `###` block: each block is self-contained given the table ab
 
 | Controller | Class | Ops | Page |
 | --- | --- | --- | --- |
-| `client.console` | `Console` / `AsyncConsole` | 20 | [map/operations/console.md](map/operations/console.md) |
+| `client.console` | `Console` / `AsyncConsole` | 21 | [map/operations/console.md](map/operations/console.md) |
 | `client.demo` | `Demo` / `AsyncDemo` | 9 | [map/operations/demo.md](map/operations/demo.md) |
 | `client.ops` | `Ops` / `AsyncOps` | 1 | [map/operations/ops.md](map/operations/ops.md) |
 | `client.webhooks` | `Webhooks` / `AsyncWebhooks` | 1 | [map/operations/webhooks.md](map/operations/webhooks.md) |
@@ -230,7 +230,7 @@ Sub-pages chunk per `###` block: each block is self-contained given the table ab
 | Models (`SdkBaseModel` pydantic classes) | 30 | `aegis_fleet/models/` |
 | Enums (`Enum` over `str`) — Python member names + wire values | 9 | `aegis_fleet/models/enums/` |
 | Unions (plain) — `TypeAlias` over the arms | 1 | `aegis_fleet/models/unions/` |
-| Error aliases (one per Case A operation) | 20 | `aegis_fleet/errors/` |
+| Error aliases (one per Case A operation) | 21 | `aegis_fleet/errors/` |
 
 Conventions: a model is a `SdkBaseModel` (pydantic) class; a field whose wire name differs from its Python name carries it as `Field(alias=…)` (`from_` ↔ `"from"`) — read the alias off the field rather than deriving it. An omittable field is annotated `Optional[T]` and defaults to `UNSET`, and one that may also be explicitly null is `OptionalNullable[T]`; both come from `core` and neither is `typing.Optional` — there is no `None` arm unless the spec declared the property nullable, so passing `None` to the first is a type error rather than a value that serializes.
 

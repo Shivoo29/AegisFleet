@@ -2,7 +2,7 @@
 
 # Console — operations
 
-Accessor: `client.console` · Source: `src/resources/console.ts` · 20 operations · Request and error types: namespace `Console`
+Accessor: `client.console` · Source: `src/resources/console.ts` · 21 operations · Request and error types: namespace `Console`
 
 **Type sources**: every type an operation names, with the file that declares it and the schema value exported beside it. Import every name from `aegis-fleet`; the `Source` path is where to **read** the shape, never what to import. `ApiError`, the runtime error family and the file vocabulary are excluded — see sdk-map.md.
 
@@ -229,6 +229,16 @@ Accessor: `client.console` · Source: `src/resources/console.ts` · 20 operation
 | Type | Schema value | Source |
 | --- | --- | --- |
 | `Ok` | `okSchema` | `src/models/ok.ts` |
+
+### mcpLink
+
+- **Signature**: `mcpLink(options?: RequestOptions): ApiPromise<Record<string, unknown>, Console.McpLinkError>`
+- **Wire**: `GET /api/mcp/link`
+- **Auth**: `httpBasic`
+- **Request body**: none — no `Content-Type` header is sent
+- **Returns**: `Record<string, unknown>` — a bare `application/json` map; the success type *is* the map
+- **Error**: `AegisFleetError` with `kind: "api"`, an instance of `Console.McpLinkError` — **typed arms**, narrowed on `err.payload.kind`
+- **Error arms**: `"error401"` [401] no body · `"undeclared"` [any other] `rawBody: ArrayBuffer`
 
 ### me
 

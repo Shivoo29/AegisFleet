@@ -10,6 +10,7 @@ from .ledger_error import LedgerErrorBody, ledger_error_mapper
 from .ledger_verify_error import LedgerVerifyErrorBody, ledger_verify_error_mapper
 from .login_error import LoginErrorBody, login_error_mapper
 from .logout_error import LogoutErrorBody, logout_error_mapper
+from .mcp_link_error import McpLinkErrorBody, mcp_link_error_mapper
 from .me_error import MeErrorBody, me_error_mapper
 from .plans_cancel_error import PlansCancelErrorBody, plans_cancel_error_mapper
 from .plans_list_error import PlansListErrorBody, plans_list_error_mapper
@@ -32,6 +33,7 @@ __all__ = [
     "LedgerVerifyErrorBody",
     "LoginErrorBody",
     "LogoutErrorBody",
+    "McpLinkErrorBody",
     "MeErrorBody",
     "PlansCancelErrorBody",
     "PlansListErrorBody",
@@ -52,6 +54,7 @@ __all__ = [
     "ledger_verify_error_mapper",
     "login_error_mapper",
     "logout_error_mapper",
+    "mcp_link_error_mapper",
     "me_error_mapper",
     "plans_cancel_error_mapper",
     "plans_list_error_mapper",

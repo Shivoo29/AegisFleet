@@ -1002,6 +1002,82 @@ if (result.ok) {
 </details>
 
 <details>
+<summary><code>mcpLink(options?: RequestOptions): ApiPromise&lt;Record&lt;string, unknown&gt;, Console.McpLinkError&gt;</code></summary>
+
+<dl>
+<dd>
+
+### Description
+
+<dl>
+<dd>
+
+A personal MCP URL (token inside, valid 14 days) for any AI client that only accepts a URL.
+
+</dd>
+</dl>
+
+### Direct Usage
+
+<dl>
+<dd>
+
+```ts
+try {
+  const response = await client.console.mcpLink();
+  // TODO: Handle 'response' of type Record<string, unknown>
+} catch (err) {
+  // TODO: Handle 'err' of type Console.McpLinkError, discriminated with 'err.payload.kind'
+}
+```
+
+</dd>
+</dl>
+
+### Usage as ApiResult
+
+<dl>
+<dd>
+
+```ts
+const result = await client.console.mcpLink().asApiResult();
+// TODO: Use 'result.status' and 'result.headers' to read the raw response status and headers
+if (result.ok) {
+  // TODO: Use 'result.value' of type Record<string, unknown>
+} else {
+  // TODO: Handle 'result', discriminated with 'result.payload.kind'
+}
+```
+
+</dd>
+</dl>
+
+### Response
+
+<dl>
+<dd>
+
+**Direct**: `await client.console.mcpLink()`
+
+- **OnSuccess**: <code>Record&lt;string, unknown&gt;</code>
+- **OnError**: throws <code>[Console.McpLinkError](src/resources/console.ts)</code>, with `err.payload` discriminated on `kind`
+
+**As ApiResult**: `await client.console.mcpLink().asApiResult()`
+
+- **OnSuccess**: <code>[ApiResult](src/core/api-promise.ts)&lt;Record&lt;string, unknown&gt;, Console.McpLinkError&gt;</code>, with `result.value` of type <code>Record&lt;string, unknown&gt;</code>
+- **OnError**: `result.payload` discriminated on `kind`, with `result.message`
+
+**Thrown**: <code>[AegisFleetError](src/core/errors.ts)</code> on any operational failure — a caller abort and a programmer error stay outside the family and reach you raw
+
+</dd>
+</dl>
+
+</dd>
+</dl>
+
+</details>
+
+<details>
 <summary><code>me(options?: RequestOptions): ApiPromise&lt;Me, Console.MeError&gt;</code></summary>
 
 <dl>

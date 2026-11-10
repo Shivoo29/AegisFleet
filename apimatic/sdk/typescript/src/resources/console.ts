@@ -486,6 +486,40 @@ export class Console {
   }
 
   /**
+   * Mcp Link
+   *
+   * @remarks
+   * A personal MCP URL (token inside, valid 14 days) for any AI client that only accepts a URL.
+   *
+   * @returns Successful Response
+   *
+   * @throws {@link Console.McpLinkError} when the API answers with an error status — narrow on
+   * `err.payload.kind`
+   *
+   * @throws {@link AegisFleetError} when no usable response was produced: a connection failure, a
+   * timeout, a body that would not decode, a value that would not encode, or a credential that
+   * could not be obtained
+   */
+  mcpLink(options?: RequestOptions): ApiPromise<Record<string, unknown>, Console.McpLinkError> {
+    return this.#rawClient.execute(
+      {
+        method: "GET",
+        urlTemplate: this.#servers.default("/api/mcp/link"),
+        auth: this.#auth.httpBasic,
+        pathParams: [],
+        query: [],
+        headers: [],
+        body: { kind: "empty" },
+      },
+      {
+        success: { kind: "json", schema: s.record(s.string(), s.unknown()) },
+        errorFactory: Console.McpLinkError,
+      },
+      options,
+    );
+  }
+
+  /**
    * Me
    *
    * @remarks
@@ -928,6 +962,14 @@ export namespace Console {
     declare readonly payload: Declared<"error401", undefined> | Undeclared;
 
     static readonly errors: ErrorDecoders<LogoutError> = [
+      { on: 401, kind: "error401", decode: { kind: "empty" } },
+    ];
+  }
+
+  export class McpLinkError extends ApiError {
+    declare readonly payload: Declared<"error401", undefined> | Undeclared;
+
+    static readonly errors: ErrorDecoders<McpLinkError> = [
       { on: 401, kind: "error401", decode: { kind: "empty" } },
     ];
   }

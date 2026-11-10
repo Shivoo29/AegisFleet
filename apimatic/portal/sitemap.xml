@@ -79,6 +79,9 @@
     <loc>https://aegisfleet.solvor.co.in/docs/api/openapi/console/plans_cancel</loc>
   </url>
   <url>
+    <loc>https://aegisfleet.solvor.co.in/docs/api/openapi/console/mcp_link</loc>
+  </url>
+  <url>
     <loc>https://aegisfleet.solvor.co.in/docs/api/openapi/demo/demo_status</loc>
   </url>
   <url>

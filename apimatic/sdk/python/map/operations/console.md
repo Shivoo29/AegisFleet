@@ -2,7 +2,7 @@
 
 # Console — operations
 
-Accessor: `client.console` · Source: `aegis_fleet/apis/console.py` · 20 operations
+Accessor: `client.console` · Source: `aegis_fleet/apis/console.py` · 21 operations
 
 Each `###` block is one operation and assumes `sdk-map.md` is loaded: blocks omit what its invariants table covers and are otherwise self-contained, so chunk at block level. Signatures are the sync parsed spelling; the async and raw spellings take the same parameters (see sdk-map.md). **Type sources** names the module declaring each type an operation mentions, so resolving a body, return or error payload is a lookup rather than a search; the runtime types `RawError` and `ApiResult` are excluded.
 
@@ -206,6 +206,20 @@ Each `###` block is one operation and assumes `sdk-map.md` is loaded: blocks omi
 | --- | --- |
 | `Ok` | `aegis_fleet/models/ok.py` |
 | `LogoutErrorBody` | `aegis_fleet/errors/logout_error.py` |
+
+### client.console.mcp_link
+
+- **Route**: `GET /api/mcp/link`
+- **Auth**: `http_basic`
+- **Signature**: `def mcp_link(*, request_options: RequestOptionsOrDict | None = None)`
+- **Returns (parsed)**: `Any`
+- **Returns (raw)**: `ApiResult[Any, McpLinkErrorBody]`
+- **Error**: `McpLinkErrorBody` — **Case A (typed)**
+- **Error arms**: `RawError` [401, anything unmapped]
+
+| Type | Source |
+| --- | --- |
+| `McpLinkErrorBody` | `aegis_fleet/errors/mcp_link_error.py` |
 
 ### client.console.me
 

@@ -987,6 +987,86 @@ Mapped in first-match order -- an earlier row wins over a later range that also 
 </details>
 
 <details>
+<summary><code>def mcp_link(*, request_options: RequestOptionsOrDict | None = None) -> Any</code></summary>
+
+<dl>
+<dd>
+
+### Description
+
+<dl>
+<dd>
+
+A personal MCP URL (token inside, valid 14 days) for any AI client that only accepts a URL.
+
+</dd>
+</dl>
+
+### Usage
+
+<dl>
+<dd>
+
+**Sync**
+
+```python
+try:
+    response = client.console.mcp_link()
+    # TODO: Handle 'response' of type Any
+except ApiError as e:
+    ...  # TODO: Handle 'e.error' of type McpLinkErrorBody
+```
+
+**Async**
+
+```python
+try:
+    response = await async_client.console.mcp_link()
+    # TODO: Handle 'response' of type Any
+except ApiError as e:
+    ...  # TODO: Handle 'e.error' of type McpLinkErrorBody
+```
+
+</dd>
+</dl>
+
+### Parameters
+
+<dl>
+<dd>
+
+| Name | Type | Description |
+| --- | --- | --- |
+| <code>request_options</code> | <code>[RequestOptionsOrDict](aegis_fleet/core/request_options.py) \| None</code> | Per-call overrides for this one request, such as a timeout, extra headers, or its retry count and statuses. |
+
+</dd>
+</dl>
+
+### Response
+
+<dl>
+<dd>
+
+**OnSuccess**: <code>Any</code> -- Successful Response
+
+**OnError**: <code>[ApiError](aegis_fleet/core/exceptions.py)&#91;[McpLinkErrorBody](aegis_fleet/errors/mcp_link_error.py)&#93;</code>
+
+Mapped in first-match order -- an earlier row wins over a later range that also covers the status:
+
+| Status | `error` is |
+| --- | --- |
+| 401 | <code>[RawError](aegis_fleet/core/results.py)</code> |
+| anything unmapped | <code>[RawError](aegis_fleet/core/results.py)</code> |
+
+</dd>
+</dl>
+
+</dd>
+</dl>
+
+</details>
+
+<details>
 <summary><code>def me(*, request_options: RequestOptionsOrDict | None = None) -> Me</code></summary>
 
 <dl>

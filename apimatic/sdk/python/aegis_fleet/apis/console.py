@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from typing import Any
 from uuid import UUID, uuid4
 
 from ..auth import AsyncAuthSchemes, AuthSchemes
@@ -27,6 +28,7 @@ from ..errors.ledger_error import LedgerErrorBody, ledger_error_mapper
 from ..errors.ledger_verify_error import LedgerVerifyErrorBody, ledger_verify_error_mapper
 from ..errors.login_error import LoginErrorBody, login_error_mapper
 from ..errors.logout_error import LogoutErrorBody, logout_error_mapper
+from ..errors.mcp_link_error import McpLinkErrorBody, mcp_link_error_mapper
 from ..errors.me_error import MeErrorBody, me_error_mapper
 from ..errors.plans_cancel_error import PlansCancelErrorBody, plans_cancel_error_mapper
 from ..errors.plans_list_error import PlansListErrorBody, plans_list_error_mapper
@@ -274,6 +276,20 @@ class Console:
         Raises:
             ApiError: Login required: HTTP Basic or the session cookie ``error`` is ``RawError``."""
         return unwrap(self._with_raw_response.logout(request_options=request_options))
+
+    def mcp_link(self, *, request_options: RequestOptionsOrDict | None = None) -> Any:
+        """A personal MCP URL (token inside, valid 14 days) for any AI client that only accepts a URL.
+
+        Args:
+            request_options: Per-call overrides for this one request, such as a timeout, extra headers, or its retry
+                count and statuses.
+
+        Returns:
+            Successful Response
+
+        Raises:
+            ApiError: Login required: HTTP Basic or the session cookie ``error`` is ``RawError``."""
+        return unwrap(self._with_raw_response.mcp_link(request_options=request_options))
 
     def me(self, *, request_options: RequestOptionsOrDict | None = None) -> Me:
         """Who is logged in, and whether they are the seller (dev) or a read-mostly judge.
@@ -628,6 +644,20 @@ class AsyncConsole:
         Raises:
             ApiError: Login required: HTTP Basic or the session cookie ``error`` is ``RawError``."""
         return unwrap(await self._with_raw_response.logout(request_options=request_options))
+
+    async def mcp_link(self, *, request_options: RequestOptionsOrDict | None = None) -> Any:
+        """A personal MCP URL (token inside, valid 14 days) for any AI client that only accepts a URL.
+
+        Args:
+            request_options: Per-call overrides for this one request, such as a timeout, extra headers, or its retry
+                count and statuses.
+
+        Returns:
+            Successful Response
+
+        Raises:
+            ApiError: Login required: HTTP Basic or the session cookie ``error`` is ``RawError``."""
+        return unwrap(await self._with_raw_response.mcp_link(request_options=request_options))
 
     async def me(self, *, request_options: RequestOptionsOrDict | None = None) -> Me:
         """Who is logged in, and whether they are the seller (dev) or a read-mostly judge.
@@ -1034,6 +1064,24 @@ class ConsoleWithRawResponse(SecuredRawResponse[RawClient, Server, AuthSchemes])
             headers=[param[UUID]("Idempotency-Key", uuid4())],
             decoder=json_decoder[Ok],
             error_mapper=logout_error_mapper,
+            request_options=request_options,
+        )
+
+    def mcp_link(self, *, request_options: RequestOptionsOrDict | None = None) -> ApiResult[Any, McpLinkErrorBody]:
+        """A personal MCP URL (token inside, valid 14 days) for any AI client that only accepts a URL.
+
+        Args:
+            request_options: Per-call overrides for this one request, such as a timeout, extra headers, or its retry
+                count and statuses.
+
+        Returns:
+            An ``ApiResult`` holding the deserialized response or the error body."""
+        return self._client.execute(
+            http_method="GET",
+            url_template=self._server.default("/api/mcp/link"),
+            auth_scheme=self._auth.http_basic,
+            decoder=json_decoder[Any],
+            error_mapper=mcp_link_error_mapper,
             request_options=request_options,
         )
 
@@ -1481,6 +1529,26 @@ class AsyncConsoleWithRawResponse(SecuredRawResponse[AsyncRawClient, Server, Asy
             headers=[param[UUID]("Idempotency-Key", uuid4())],
             decoder=async_json_decoder[Ok],
             error_mapper=logout_error_mapper,
+            request_options=request_options,
+        )
+
+    async def mcp_link(
+        self, *, request_options: RequestOptionsOrDict | None = None
+    ) -> ApiResult[Any, McpLinkErrorBody]:
+        """A personal MCP URL (token inside, valid 14 days) for any AI client that only accepts a URL.
+
+        Args:
+            request_options: Per-call overrides for this one request, such as a timeout, extra headers, or its retry
+                count and statuses.
+
+        Returns:
+            An ``ApiResult`` holding the deserialized response or the error body."""
+        return await self._client.execute(
+            http_method="GET",
+            url_template=self._server.default("/api/mcp/link"),
+            auth_scheme=self._auth.http_basic,
+            decoder=async_json_decoder[Any],
+            error_mapper=mcp_link_error_mapper,
             request_options=request_options,
         )
 

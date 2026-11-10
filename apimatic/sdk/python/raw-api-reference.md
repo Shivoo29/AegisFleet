@@ -1035,6 +1035,90 @@ Mapped in first-match order -- an earlier row wins over a later range that also 
 </details>
 
 <details>
+<summary><code>def mcp_link(*, request_options: RequestOptionsOrDict | None = None) -> ApiResult[Any, McpLinkErrorBody]</code></summary>
+
+<dl>
+<dd>
+
+### Description
+
+<dl>
+<dd>
+
+A personal MCP URL (token inside, valid 14 days) for any AI client that only accepts a URL.
+
+</dd>
+</dl>
+
+### Usage
+
+<dl>
+<dd>
+
+**Sync**
+
+```python
+result = client.console.with_raw_response.mcp_link()
+match result:
+    case Success(payload=payload):
+        ...  # TODO: Handle 'payload' of type Any
+    case Failure(error=error):
+        ...  # TODO: Handle 'error' of type McpLinkErrorBody
+```
+
+**Async**
+
+```python
+result = await async_client.console.with_raw_response.mcp_link()
+match result:
+    case Success(payload=payload):
+        ...  # TODO: Handle 'payload' of type Any
+    case Failure(error=error):
+        ...  # TODO: Handle 'error' of type McpLinkErrorBody
+```
+
+</dd>
+</dl>
+
+### Parameters
+
+<dl>
+<dd>
+
+| Name | Type | Description |
+| --- | --- | --- |
+| <code>request_options</code> | <code>[RequestOptionsOrDict](aegis_fleet/core/request_options.py) \| None</code> | Per-call overrides for this one request, such as a timeout, extra headers, or its retry count and statuses. |
+
+</dd>
+</dl>
+
+### Response
+
+<dl>
+<dd>
+
+**Returns**: <code>[ApiResult](aegis_fleet/core/results.py)&#91;Any, [McpLinkErrorBody](aegis_fleet/errors/mcp_link_error.py)&#93;</code>
+
+**On `Success`**: `payload` is <code>Any</code> -- Successful Response
+
+**On `Failure`**: `error` is <code>[McpLinkErrorBody](aegis_fleet/errors/mcp_link_error.py)</code>
+
+Mapped in first-match order -- an earlier row wins over a later range that also covers the status:
+
+| Status | `error` is |
+| --- | --- |
+| 401 | <code>[RawError](aegis_fleet/core/results.py)</code> |
+| anything unmapped | <code>[RawError](aegis_fleet/core/results.py)</code> |
+
+</dd>
+</dl>
+
+</dd>
+</dl>
+
+</details>
+
+<details>
 <summary><code>def me(*, request_options: RequestOptionsOrDict | None = None) -> ApiResult[Me, MeErrorBody]</code></summary>
 
 <dl>

@@ -32,6 +32,7 @@ reused only while the factors they were written for still hold.
     - [Plans List](/docs/api/openapi/console/plans_list): What the agents have scheduled: planned, done, held, blocked and cancelled actions.
     - [Plans Move](/docs/api/openapi/console/plans_move): Seller moves a planned action to a new time (drag on the Timeline). Sealed in the ledger.
     - [Plans Cancel](/docs/api/openapi/console/plans_cancel): Seller cancels a planned action. Sealed in the ledger.
+    - [Mcp Link](/docs/api/openapi/console/mcp_link): A personal MCP URL (token inside, valid 14 days) for any AI client that only accepts a URL.
   - Demo: One-click story beats for judges (demo mode only).
     - [Demo Status](/docs/api/openapi/demo/demo_status): 200 when demo mode is on (404 otherwise).
     - [Scam Email](/docs/api/openapi/demo/scam_email): Fake 'payment received' email: no verified payment in the ledger -> Sentinel says scam.
