@@ -15,6 +15,7 @@ from app.models import Event
 
 EMAILS = Path(__file__).resolve().parent.parent.parent / "fixtures" / "emails"
 DEMO_INVOICE = "INV-0007"
+OVERDUE_INVOICE = "INV-0006"
 TABLES = ("approvals", "ledger", "agent_runs", "budgets", "events", "invoices", "shipments", "settings")
 
 
@@ -53,6 +54,31 @@ def delivered(bg: BackgroundTasks) -> dict:
     return {**_fire("delivery.confirmed", "courier",
                     {"subject_id": DEMO_INVOICE, "invoice_id": DEMO_INVOICE, "status": "DELIVERED"}, bg),
             "message": f"Courier marked {DEMO_INVOICE} delivered. The event is sealed in the ledger."}
+
+
+@router.post("/overdue_invoice")
+def overdue_invoice(bg: BackgroundTasks) -> dict:
+    """Invoice is past due -> Collector scores risk, drafts, and attempts one capped reminder."""
+    with conn() as c:
+        with c.cursor() as cur:
+            cur.execute("SELECT data FROM invoices WHERE id=%s", (OVERDUE_INVOICE,))
+            row = cur.fetchone()
+    if row is None:
+        raise HTTPException(409, "Run Reset first so INV-0006 exists.")
+    d = row["data"]
+    due = d.get("due_date")
+    days = 1
+    if due:
+        try:
+            days = max(1, (datetime.now(timezone.utc).date() - datetime.fromisoformat(due).date()).days)
+        except ValueError:
+            days = 1
+    data = {"subject_id": OVERDUE_INVOICE, "invoice_id": OVERDUE_INVOICE,
+            "amount_cents": d.get("amount_cents"), "currency": d.get("currency", "USD"),
+            "due_date": due, "days_overdue": days}
+    return {**_fire("invoice.overdue", "scheduler", data, bg),
+            "message": f"Overdue invoice {OVERDUE_INVOICE} sent to Collector. "
+                       "Check Invoices and Activity in a few seconds."}
 
 
 @router.post("/replay_injection")

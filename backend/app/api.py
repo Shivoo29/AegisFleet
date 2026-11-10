@@ -250,19 +250,25 @@ def invoices() -> list:
         "AND payload->>'verified'='true' AND payload->>'type' IN ('payment.captured','invoice.paid') "
         "GROUP BY subject_id")}
     ships = {r["id"]: r["data"] for r in _rows("SELECT id, data FROM shipments")}
+    plans = {r["output"]["invoice_id"]: r["output"] for r in _rows(
+        "SELECT DISTINCT ON (output->>'invoice_id') output FROM agent_runs "
+        "WHERE agent='collector' AND status='done' AND output ? 'invoice_id' "
+        "ORDER BY output->>'invoice_id', started_at DESC")}
     today = datetime.now(timezone.utc).date()
     out = []
     for row in _rows("SELECT id, data FROM invoices ORDER BY id DESC"):
         d, inv = row["data"], row["id"]
         due = d.get("due_date")
         late = 0 if inv in paid or not due else max(0, (today - datetime.fromisoformat(due).date()).days)
-        # ponytail: rule-of-thumb risk; Collector's plan replaces this when it ships.
+        # Fallback until Collector has run for this invoice; then its deterministic plan wins.
         risk = "low" if inv in paid else "high" if late > 14 else "medium" if late else "low"
+        plan = plans.get(inv) or {}
         out.append({"id": inv, "buyer_email": d.get("buyer_email"), "amount_cents": d.get("amount_cents"),
                     "currency": d.get("currency", "USD"),
                     "status": "paid" if inv in paid else "overdue" if late else "sent",
-                    "days_overdue": late, "risk": risk, "shipped": inv in ships,
+                    "days_overdue": late, "risk": plan.get("risk") or risk, "shipped": inv in ships,
                     "tracking_number": (ships.get(inv) or {}).get("tracking_number"),
+                    "collector_tone": plan.get("tone"), "collector_next_action": plan.get("next_action"),
                     "created_at": d.get("created_at"), "paid_at": paid.get(inv), "pay_url": d.get("pay_url")})
     return out
 

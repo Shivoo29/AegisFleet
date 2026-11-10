@@ -32,6 +32,24 @@ def test_scam_email_runs_sentinel() -> None:
     assert cl.get("/api/runs", auth=AUTH).json()[0]["agent"] == "sentinel"
 
 
+def test_overdue_invoice_runs_collector() -> None:
+    cl = TestClient(app)
+    cl.post("/api/demo/reset", auth=AUTH)
+    assert cl.post("/api/demo/overdue_invoice", auth=AUTH).json()["ok"]
+
+    run = cl.get("/api/runs", auth=AUTH).json()[0]
+    assert run["agent"] == "collector" and run["status"] == "done"
+    assert run["output"]["invoice_id"] == "INV-0006"
+    assert run["output"]["next_action"] == "remind"
+
+    inv = {i["id"]: i for i in cl.get("/api/invoices", auth=AUTH).json()}
+    assert inv["INV-0006"]["risk"] == run["output"]["risk"]
+    assert inv["INV-0006"]["collector_next_action"] == "remind"
+    assert inv["INV-0006"]["collector_tone"] == run["output"]["tone"]
+    assert any(e.payload.get("tool") == "send_invoice_reminder" and e.payload.get("outcome") == "allow"
+               for e in find(kind="decision", subject_id="INV-0006"))
+
+
 def test_inbox_returns_verdict() -> None:
     r = TestClient(app).post("/api/inbox", auth=AUTH, json={
         "from": "service@paypa1-support.com", "subject": "Payment received",

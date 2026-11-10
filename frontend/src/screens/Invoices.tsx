@@ -17,6 +17,8 @@ type Invoice = {
   status: string
   days_overdue: number
   risk: string
+  collector_tone: string | null
+  collector_next_action: string | null
   shipped: boolean
   tracking_number: string | null
   created_at: string
@@ -67,6 +69,16 @@ export default function Invoices() {
           valueFormatter: (p: { value?: number }) => (p.value ? `${p.value}d` : '—'),
         },
         { field: 'risk', headerName: 'Risk', width: 100, cellRenderer: RiskCell },
+        {
+          field: 'collector_next_action',
+          headerName: 'Collector',
+          width: 150,
+          valueFormatter: (p: { data?: Invoice }) => {
+            const d = p.data
+            if (!d?.collector_next_action) return '—'
+            return d.collector_tone ? `${d.collector_next_action} · ${d.collector_tone}` : d.collector_next_action
+          },
+        },
         {
           field: 'shipped',
           headerName: 'Shipped',

@@ -22,6 +22,12 @@ const BEATS: Beat[] = [
     path: '/api/demo/sandbox_record_payment',
   },
   {
+    id: 'overdue_invoice',
+    title: 'Overdue invoice reminder',
+    description: 'Fire invoice.overdue for INV-0006. Collector scores risk, drafts a capped reminder, and the gateway records the send.',
+    path: '/api/demo/overdue_invoice',
+  },
+  {
     id: 'scam_email',
     title: 'Fake payment email',
     description: 'Inject a scam “payment received” email. Sentinel should flag it and keep the ship gate closed.',
