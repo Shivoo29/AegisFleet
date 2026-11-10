@@ -1,208 +1,167 @@
-# Setting up AegisFleet on your laptop
+# Setting up AegisFleet
 
-Follow this top to bottom once. It takes about 20 minutes. If a step fails, copy the
-exact error message and send it in the group — don't guess.
+This guide gets AegisFleet running on your machine, first with **no accounts or keys** (fake PayPal, fake AI),
+then optionally with real AI models and a real PayPal sandbox. Allow about 15 minutes.
 
-> **Golden rule about secrets:** your `.env` file holds your passwords and API keys.
-> Never commit it, never paste it in WhatsApp/Discord, never screenshot it.
-> Git already ignores it, so `git add .` is safe — but double check `git status`
-> never shows `.env`.
+- [1. Prerequisites](#1-prerequisites)
+- [2. Quick start (no keys)](#2-quick-start-no-keys)
+- [3. Use real AI models](#3-use-real-ai-models-optional)
+- [4. Use the PayPal sandbox](#4-use-the-paypal-sandbox-optional)
+- [5. Connect an AI agent over MCP](#5-connect-an-ai-agent-over-mcp)
+- [6. Tests and evals](#6-tests-and-evals)
+- [7. Configuration reference](#7-configuration-reference)
+- [8. Troubleshooting](#8-troubleshooting)
 
----
-
-## 1. Install the tools (one time)
-
-| Tool | Why | Get it | Check it works |
-|---|---|---|---|
-| Git | download the code | https://git-scm.com/downloads | `git --version` |
-| Python 3.12 or newer | runs the backend | https://www.python.org/downloads/ (Windows: tick **"Add python to PATH"**) | `python --version` |
-| Node.js 20 or newer | runs the console (frontend) | https://nodejs.org (LTS) | `node --version` |
-| Docker Desktop | runs the database | https://www.docker.com/products/docker-desktop/ | `docker --version` |
-
-After installing Docker Desktop, **open it once** and leave it running in the background.
+> **Secrets:** `.env` holds your passwords and API keys. It is git-ignored; keep it that way. Never commit it,
+> paste it into chats, or screenshot it.
 
 ---
 
-## 2. Get the code
+## 1. Prerequisites
+
+| Tool | Version | Check |
+|---|---|---|
+| Git | any | `git --version` |
+| Python | 3.12+ (on Windows, tick **Add python to PATH**) | `python --version` |
+| Node.js | 20+ (LTS) | `node --version` |
+| Docker | Docker Desktop or Docker Engine, running | `docker --version` |
+
+Docker only runs the local PostgreSQL. Any Postgres 14+ works instead: point `DATABASE_URL` at it.
+
+## 2. Quick start (no keys)
 
 ```bash
 git clone https://github.com/Shivoo29/AegisFleet.git
 cd AegisFleet
+cp .env.example .env            # Windows PowerShell: copy .env.example .env
+docker compose up -d db         # PostgreSQL 16 on localhost:5432
 ```
 
-Already cloned it earlier? Just update instead:
+**Backend** (terminal 1):
 
 ```bash
-cd AegisFleet
-git checkout main
-git pull
+cd backend
+python -m venv .venv
+source .venv/bin/activate       # Windows: .venv\Scripts\Activate.ps1
+pip install -r requirements.txt
+pytest -q                       # all tests should pass
+uvicorn app.main:app --reload   # http://localhost:8000/healthz -> {"ok":true}
 ```
 
----
+**Frontend** (terminal 2):
 
-## 3. Make your `.env` file
-
-The repo has a template called `.env.example`. You copy it to `.env` and fill in **your own** values.
-Nobody sends you their `.env` — everyone makes their own.
-
-**Mac / Linux:**
 ```bash
-cp .env.example .env
-```
-**Windows (PowerShell):**
-```powershell
-copy .env.example .env
+cd frontend
+npm install
+npm run dev                     # http://localhost:5173 (proxies /api, /mcp and /webhooks to :8000)
 ```
 
-Open `.env` in VS Code. It looks like this. Here is what each line means:
+Log in with username **`dev`** and password **`dev`** (`CONSOLE_PASSWORD` in `.env`). Start with
+**Demo → Reset demo state**, then follow the guided tour.
 
-| Line | What to put | Need to change? |
+To serve everything from the backend instead (as in production): `cd frontend && npm run build`, then open
+http://localhost:8000.
+
+Frontend-only work without a backend: create `frontend/.env.local` with `VITE_USE_MOCKS=true`.
+
+## 3. Use real AI models (optional)
+
+All three providers have free tiers. Only one key is required; a provider without a key is skipped.
+
+| Provider | Get a key | `.env` line |
 |---|---|---|
-| `DATABASE_URL=...` | leave as is | No |
-| `PAYPAL_MODE=fake` | leave `fake` — uses saved sample data, no PayPal account needed | No |
-| `PAYPAL_CLIENT_ID=` / `PAYPAL_CLIENT_SECRET=` / `PAYPAL_WEBHOOK_ID=` | leave empty | No |
-| `LLM_PROVIDER=fake` | `fake` = no AI calls, uses a saved answer. Fine to start. See step 3b to use real AI. | Optional |
-| `LLM_MODEL=` / `LLM_FALLBACKS=` | only for real AI (step 3b) | Optional |
-| `GROQ_API_KEY=` / `GEMINI_API_KEY=` / `NVIDIA_API_KEY=` | only for real AI (step 3b) | Optional |
-| `AGENTS_ENABLED=...` | leave as is | No |
-| `APPROVAL_THRESHOLD_CENTS=10000` | leave as is ($100) | No |
-| `KILL_SWITCH=false` | leave as is | No |
-| `CONSOLE_PASSWORD=dev` | leave `dev` on your laptop | No |
-| `DEMO_MODE=true` | leave as is | No |
+| Groq (primary) | https://console.groq.com/keys | `GROQ_API_KEY=` |
+| Google Gemini (fallback 1) | https://aistudio.google.com/apikey | `GEMINI_API_KEY=` |
+| NVIDIA NIM (fallback 2) | https://build.nvidia.com | `NVIDIA_API_KEY=` |
 
-**That's it — with the defaults the whole app runs with zero keys.** Save the file (Ctrl+S).
-An unsaved `.env` is the #1 reason things "don't work".
+Then set:
 
-### Rules for editing `.env`
-- One setting per line: `NAME=value`
-- **No spaces** around `=` and **no quotes**: `GROQ_API_KEY=gsk_abc123` ✅ — `GROQ_API_KEY = "gsk_abc123"` ❌
-- Exactly **one** `=` after the name. `NVIDIA_API_KEY==nvapi...` ❌ (this broke things for us once)
-- Everything after `#` is a comment, ignored.
-
-### 3b. (Teammate A only, when testing agents) Use real AI — all free
-
-You need your **own** free keys. Takes 5 minutes each, no credit card.
-
-| Provider | Where to get a key | Paste into |
-|---|---|---|
-| Groq (main, fastest) | https://console.groq.com/keys → **Create API Key** | `GROQ_API_KEY=` |
-| Google Gemini (backup 1) | https://aistudio.google.com/apikey → **Create API key** | `GEMINI_API_KEY=` |
-| NVIDIA NIM (backup 2) | https://build.nvidia.com → sign in → any model → **Get API Key** | `NVIDIA_API_KEY=` |
-
-Then set these three lines exactly:
 ```
 LLM_PROVIDER=groq
 LLM_MODEL=openai/gpt-oss-120b
 LLM_FALLBACKS=gemini:gemini-3.5-flash,nvidia:nvidia/nemotron-3.5-super-vl-120b-a12b
 ```
-If Groq is busy or down, the app automatically tries Gemini, then NVIDIA.
-Only Groq is required; a provider with an empty key is just skipped.
 
-Want to go back to no-AI mode? Set `LLM_PROVIDER=fake`.
+Restart the backend. If the primary is rate-limited or down, calls fall through the chain; if every
+provider fails, agents fall back to their rules. `LLM_PROVIDER=fake` switches AI off again.
 
----
+## 4. Use the PayPal sandbox (optional)
 
-## 4. Start the database
+1. At https://developer.paypal.com, open **Apps & Credentials → Sandbox → Create App**. Copy the client ID
+   and secret into `PAYPAL_CLIENT_ID` and `PAYPAL_CLIENT_SECRET`.
+2. Set `PAYPAL_MODE=sandbox`, and set `CONSOLE_PASSWORD` to something other than `dev` (the app refuses to
+   start in sandbox mode with the default password). `PAYPAL_MODE=live` is always refused.
+3. **Webhooks** need a public HTTPS URL. Expose the backend with a tunnel (for example
+   `cloudflared tunnel --url http://localhost:8000` or `ngrok http 8000`). In your sandbox app, add a webhook
+   for `https://<public-url>/webhooks/paypal` with these events: `INVOICING.INVOICE.PAID`,
+   `INVOICING.INVOICE.REFUNDED`, `PAYMENT.CAPTURE.COMPLETED`, `PAYMENT.CAPTURE.REFUNDED`,
+   `CUSTOMER.DISPUTE.CREATED`, `CUSTOMER.DISPUTE.UPDATED`, `CUSTOMER.DISPUTE.RESOLVED`. Copy its ID into
+   `PAYPAL_WEBHOOK_ID`. Every incoming event is checked with PayPal's `verify-webhook-signature` before it
+   is used.
+4. Restart the backend. **Demo → Real PayPal invoice** issues a real sandbox invoice; pay it as a sandbox
+   buyer (a US personal sandbox account works best) or use **Record payment (backup)**.
 
-Docker Desktop must be open. From the `AegisFleet` folder:
+Without step 3 everything else works, but invoices never turn *paid* locally, because PayPal can't reach
+`localhost`.
 
-```bash
-docker compose up -d db
-```
+## 5. Connect an AI agent over MCP
 
-Check: `docker ps` shows a row with `postgres:16`.
-After a laptop restart, run the same command again (or `docker start aegisfleet-db-1`).
+The backend serves MCP at `http://localhost:8000/mcp`. In the console, **Demo → Connect any AI agent → Get
+my MCP link** gives a URL with a signed token (valid 14 days) and the setup steps for ChatGPT, Claude,
+Claude Code, Gemini CLI, Antigravity, Cursor, VS Code and Codex. Clients that support headers can use
+`Authorization: Basic <base64 of dev:dev>` instead. Full per-client config: [README](README.md#-connect-any-ai-agent-mcp).
 
----
+Hosted clients (ChatGPT, Claude.ai) can't reach `localhost`. Use the live site's link, or a tunnel as in
+step 4. To test without an AI: `npx @modelcontextprotocol/inspector`.
 
-## 5. Backend (Python)
+## 6. Tests and evals
 
 ```bash
 cd backend
-python -m venv .venv
-```
-Activate it (you need this **every time** you open a new terminal):
-
-- Mac / Linux: `source .venv/bin/activate`
-- Windows (PowerShell): `.venv\Scripts\Activate.ps1`
-  (if Windows blocks it, run once: `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned`)
-
-Your prompt now starts with `(.venv)`. Then:
-
-```bash
-pip install -r requirements.txt
-pytest -q
-```
-All tests should pass (green dots, no `F`). Then start the server:
-
-```bash
-uvicorn app.main:app --reload
-```
-Open http://localhost:8000/healthz — you should see `{"ok":true}`.
-Leave this terminal running.
-
----
-
-## 6. Frontend / console (Node)
-
-Open a **second** terminal:
-
-```bash
-cd AegisFleet/frontend
-npm install
-npm run dev
-```
-Open http://localhost:5173. The browser asks for a login:
-- **Username:** anything (e.g. your name)
-- **Password:** `dev` (the `CONSOLE_PASSWORD` from your `.env`)
-
-**Teammate B:** to build screens without the backend running, create `frontend/.env.local` containing:
-```
-VITE_USE_MOCKS=true
-```
-Delete that line (or set `false`) to talk to the real backend.
-
----
-
-## 7. Daily workflow (how we use Git)
-
-`main` is protected — you never push to it. Every feature is its own branch and PR.
-
-```bash
-git checkout main
-git pull                          # get the latest
-git checkout -b a/my-feature      # A uses a/..., B uses b/...
-# ...work, then:
-git add <the files you changed>
-git commit -m "feat: short description"
-git push -u origin a/my-feature
-```
-Open the PR on GitHub. SKJ reviews and merges.
-
-Got review comments? **Fix on the same branch** and push again — the PR updates itself.
-Don't open a new PR for fixes.
-
-Main moved ahead while you worked? Update your branch:
-```bash
-git fetch origin
-git rebase origin/main
-git push --force-with-lease
+pytest -q                                   # unit + integration tests (needs the database)
+python -m evals.run --agent all --reset     # labelled agent suites; uses your LLM_PROVIDER
+python ../scripts/export_openapi.py         # refresh docs/api/openapi.json after an API change
 ```
 
----
+`--reset` clears the local database tables first. Evals run offline with `LLM_PROVIDER=fake`, or against
+real models with keys from step 3. The latest real-model run is in [`docs/evals/`](docs/evals/).
 
-## 8. Common problems
+## 7. Configuration reference
 
-| You see | Fix |
+| Variable | Default | Meaning |
+|---|---|---|
+| `DATABASE_URL` | `postgresql://aegis:aegis@localhost:5432/aegis` | Postgres connection string |
+| `PAYPAL_MODE` | `fake` | `fake` (fixtures) or `sandbox`; `live` is refused |
+| `PAYPAL_CLIENT_ID`, `PAYPAL_CLIENT_SECRET`, `PAYPAL_WEBHOOK_ID` | empty | Sandbox app credentials and webhook ID |
+| `LLM_PROVIDER`, `LLM_MODEL`, `LLM_FALLBACKS` | `fake` | Primary model and the fallback chain |
+| `GROQ_API_KEY`, `GEMINI_API_KEY`, `NVIDIA_API_KEY` | empty | Model provider keys |
+| `AGENTS_ENABLED` | all four | Comma list of built-in agents allowed to act |
+| `EXTERNAL_AGENTS_ENABLED` | `true` | Let outside AI agents act over MCP |
+| `APPROVAL_THRESHOLD_CENTS` | `10000` | Money out at or above this waits for a human ($100) |
+| `KILL_SWITCH` | `false` | `true` stops every agent action (also toggled in the console) |
+| `PLAN_RUNNER` | `true` | Run agents' planned actions when they come due |
+| `CONSOLE_PASSWORD` | `dev` | Password for user `dev` |
+| `JUDGE_PASSWORD` | empty | Password for user `judge`; empty disables that login |
+| `DEMO_MODE` | `true` | Enables the `/api/demo/*` story beats |
+
+## 8. Troubleshooting
+
+| Symptom | Fix |
 |---|---|
-| `PoolTimeout` / `connection refused` in tests | Database is off → `docker compose up -d db` |
-| `ModuleNotFoundError: No module named 'psycopg'` (or any module) | venv not active → activate it (step 5) |
-| `docker: command not found` / cannot connect to Docker daemon | Open Docker Desktop and wait till it says "running" |
-| Port 5432 already in use | Another Postgres is running on your laptop — stop it, or ask SKJ |
-| AI returns 401 | Wrong key or a typo in `.env` (extra `=`, space, quotes) |
-| AI returns 429 | Free limit hit — wait a minute; the fallback providers kick in automatically |
-| App refuses to start: "console password" | You changed `PAYPAL_MODE` from `fake` — set it back to `fake` |
-| Changes in `.env` do nothing | Save the file, then stop the server (Ctrl+C) and start it again |
-| `git status` shows `.env` | **Stop.** Don't commit. Tell SKJ. |
+| `PoolTimeout` or `connection refused` | The database isn't running: `docker compose up -d db` |
+| `ModuleNotFoundError` | Activate the virtualenv (step 2) and `pip install -r requirements.txt` |
+| Cannot connect to the Docker daemon | Start Docker Desktop and wait until it's running |
+| Port 5432 already in use | Stop the other Postgres, or change the port in `docker-compose.yml` and `DATABASE_URL` |
+| Login says wrong password | Use username `dev` (or `judge`), and the password from `.env` |
+| "Set a real CONSOLE_PASSWORD" on start | You set `PAYPAL_MODE=sandbox`; change `CONSOLE_PASSWORD` from `dev` |
+| Sandbox invoice never turns paid | PayPal can't reach your machine; set up the tunnel and webhook (step 4) |
+| AI errors 401 / 429 | 401: wrong key or a typo in `.env`. 429: rate limit; the fallback chain takes over |
+| `.env` changes do nothing | Save the file and restart the backend |
+| `.env` appears in `git status` | Don't commit it; check `.gitignore` |
 
-Still stuck? Send in the group: the command you ran + the full error text.
+`.env` format: one `NAME=value` per line, no spaces around `=`, no quotes; anything after `#` is a comment.
+
+## Contributing
+
+Open an issue or a pull request against `main`. Run `pytest -q` and `npm run build` before you push; CI runs
+both.

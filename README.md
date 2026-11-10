@@ -74,31 +74,84 @@ flowchart LR
 
 ## 🔌 Connect any AI agent (MCP)
 
-AegisFleet is an MCP server at `https://aegisfleet.solvor.co.in/mcp` (streamable HTTP).
+AegisFleet is an MCP server at `https://aegisfleet.solvor.co.in/mcp` (streamable HTTP). Two ways to log in:
 
-1. Log in to the console → **Demo → Connect any AI agent → Get my MCP link** (a signed token, valid 14 days).
-2. Paste it into your client. The Demo tab shows the exact steps for each one:
+- **Link (works everywhere):** console → **Demo → Connect any AI agent → Get my MCP link**. It's a signed
+  token valid 14 days: `https://aegisfleet.solvor.co.in/mcp?token=<token>`. Treat it like a password.
+- **Header (clients that support headers):** `Authorization: Basic <base64 of user:password>`, or
+  `Authorization: Bearer <token>`.
 
-| Client | How |
-|---|---|
-| ChatGPT | Developer mode → Create connector → URL = link, no authentication |
-| Claude.ai | Settings → Connectors → Add custom connector |
-| Claude Code | `claude mcp add --transport http aegisfleet "<link>"` |
-| Antigravity / Gemini CLI | `serverUrl` / `httpUrl` in the MCP config |
-| Cursor / Windsurf / VS Code / Codex | `url` in the MCP config |
+<details open>
+<summary><b>ChatGPT</b> · <b>Claude.ai</b> (URL-only connectors)</summary>
 
-Claude Code, from a terminal:
+- **ChatGPT:** Settings → Apps & Connectors → Advanced → **Developer mode** on → Create connector →
+  URL = your link, Authentication = **No authentication**. Pick it from the tools menu in a chat.
+- **Claude.ai:** Settings → Connectors → **Add custom connector** → URL = your link. Enable it in a chat.
+
+</details>
+
+<details open>
+<summary><b>Claude Code</b></summary>
 
 ```bash
-# with the link from the Demo tab
-claude mcp add --transport http aegisfleet "https://aegisfleet.solvor.co.in/mcp?token=<your-token>"
+# link
+claude mcp add --transport http aegisfleet "https://aegisfleet.solvor.co.in/mcp?token=<token>"
 
-# or with your console login
+# or console login
 claude mcp add --transport http aegisfleet https://aegisfleet.solvor.co.in/mcp \
   --header "Authorization: Basic $(printf 'judge:<password>' | base64)"
 ```
+</details>
 
-Then try: *"Invoice a buyer $150 for a silver bangle."* After it's paid: *"It arrived bent, refund it."*
+<details open>
+<summary><b>Gemini CLI</b> (<code>~/.gemini/settings.json</code>) · <b>Antigravity</b> (Agent panel → MCP Servers → View raw config)</summary>
+
+```jsonc
+// Gemini CLI
+{ "mcpServers": { "aegisfleet": { "httpUrl": "https://aegisfleet.solvor.co.in/mcp?token=<token>" } } }
+
+// Gemini CLI with a header instead
+{ "mcpServers": { "aegisfleet": { "httpUrl": "https://aegisfleet.solvor.co.in/mcp",
+    "headers": { "Authorization": "Basic <base64 of user:password>" } } } }
+
+// Antigravity (mcp_config.json)
+{ "mcpServers": { "aegisfleet": { "serverUrl": "https://aegisfleet.solvor.co.in/mcp?token=<token>" } } }
+```
+</details>
+
+<details open>
+<summary><b>Cursor</b> · <b>Windsurf</b> (<code>mcp.json</code>) · <b>VS Code Copilot</b> (<code>.vscode/mcp.json</code>)</summary>
+
+```jsonc
+// Cursor / Windsurf
+{ "mcpServers": { "aegisfleet": { "url": "https://aegisfleet.solvor.co.in/mcp?token=<token>" } } }
+
+// Cursor with a header instead
+{ "mcpServers": { "aegisfleet": { "url": "https://aegisfleet.solvor.co.in/mcp",
+    "headers": { "Authorization": "Basic <base64 of user:password>" } } } }
+
+// VS Code Copilot (agent mode)
+{ "servers": { "aegisfleet": { "type": "http", "url": "https://aegisfleet.solvor.co.in/mcp?token=<token>" } } }
+```
+</details>
+
+<details open>
+<summary><b>Codex CLI</b> (<code>~/.codex/config.toml</code>) · <b>any other MCP client</b></summary>
+
+```toml
+[mcp_servers.aegisfleet]
+url = "https://aegisfleet.solvor.co.in/mcp?token=<token>"
+```
+
+Any client that speaks MCP over streamable HTTP works: point it at the link, or at `/mcp` with one of the
+headers above. To try it without an AI, use the MCP Inspector: `npx @modelcontextprotocol/inspector`.
+</details>
+
+Make the Basic value with `printf 'judge:<password>' | base64` (macOS/Linux) or
+`[Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes("judge:<password>"))` (PowerShell).
+
+Then ask your AI: *"Invoice a buyer $150 for a silver bangle."* After it's paid: *"It arrived bent, refund it."*
+The refund lands in the console's **Approvals**; approve it and ask the AI to check the approval.
 
 | Tool | Guardrail |
 |---|---|
