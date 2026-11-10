@@ -23,6 +23,7 @@ app = FastAPI(
     openapi_tags=[
         {"name": "console", "description": "Summary, Proof Ledger, approvals, agent runs, disputes, invoices, health."},
         {"name": "demo", "description": "One-click story beats for judges (demo mode only)."},
+        {"name": "ops", "description": "Liveness probe."},
         {"name": "webhooks", "description": "PayPal webhook receiver; signatures are verified with PayPal before routing."},
     ],
 )
@@ -33,6 +34,16 @@ def _startup() -> None:
     init_schema()  # fail loudly if DB is down
 
 
+def _openapi() -> dict:
+    if not app.openapi_schema:
+        from fastapi.openapi.utils import get_openapi
+        from app.openapi_polish import polish
+        app.openapi_schema = polish(get_openapi(title=app.title, version=app.version, description=app.description,
+                                                routes=app.routes, servers=app.servers, tags=app.openapi_tags))
+    return app.openapi_schema
+
+
+app.openapi = _openapi
 app.include_router(api_router)
 app.include_router(demo_router)
 app.include_router(webhook_router)

@@ -3,12 +3,17 @@
   "info": {
     "title": "AegisFleet",
     "description": "Seller console API for AegisFleet: AI agents that guard a PayPal seller's payments, disputes, invoices and shipments. Agents never call PayPal directly; every action passes a guardrail gateway (kill switch, allowlist, caps, human approval) and is sealed into a hash-chained Proof Ledger.\n\nAuthenticate with HTTP Basic (`dev` or `judge`) or the session cookie set by `POST /api/login`.",
-    "version": "1.0.0"
+    "version": "1.0.0",
+    "contact": {
+      "name": "AegisFleet team",
+      "url": "https://github.com/Shivoo29/aegisfleet"
+    }
   },
   "servers": [
     {
       "url": "https://aegisfleet.solvor.co.in",
-      "description": "Live demo (PayPal sandbox)"
+      "description": "Live demo (PayPal sandbox)",
+      "x-environment": "production"
     }
   ],
   "paths": {
@@ -163,14 +168,17 @@
             "schema": {
               "anyOf": [
                 {
-                  "type": "string"
+                  "type": "string",
+                  "description": "Entry kind: event, decision, agent_step, approval or note"
                 },
                 {
-                  "type": "null"
+                  "type": "null",
+                  "description": "Not set"
                 }
               ],
-              "title": "Kind"
-            }
+              "description": "Entry kind: event, decision, agent_step, approval or note"
+            },
+            "description": "Entry kind: event, decision, agent_step, approval or note"
           },
           {
             "name": "subject_id",
@@ -179,14 +187,17 @@
             "schema": {
               "anyOf": [
                 {
-                  "type": "string"
+                  "type": "string",
+                  "description": "What this is about: an invoice, dispute or email id"
                 },
                 {
-                  "type": "null"
+                  "type": "null",
+                  "description": "Not set"
                 }
               ],
-              "title": "Subject Id"
-            }
+              "description": "What this is about: an invoice, dispute or email id"
+            },
+            "description": "What this is about: an invoice, dispute or email id"
           },
           {
             "name": "limit",
@@ -195,8 +206,9 @@
             "schema": {
               "type": "integer",
               "default": 100,
-              "title": "Limit"
-            }
+              "description": "Maximum number of items to return"
+            },
+            "description": "Maximum number of items to return"
           }
         ],
         "responses": {
@@ -281,8 +293,9 @@
             "schema": {
               "type": "string",
               "default": "pending",
-              "title": "Status"
-            }
+              "description": "Current status"
+            },
+            "description": "Current status"
           }
         ],
         "responses": {
@@ -336,8 +349,9 @@
             "required": true,
             "schema": {
               "type": "string",
-              "title": "Approval Id"
-            }
+              "description": "Id of the pending approval for this action"
+            },
+            "description": "Id of the pending approval for this action"
           },
           {
             "name": "action",
@@ -349,8 +363,9 @@
                 "reject"
               ],
               "type": "string",
-              "title": "Action"
-            }
+              "description": "approve or reject"
+            },
+            "description": "approve or reject"
           }
         ],
         "requestBody": {
@@ -418,8 +433,9 @@
             "schema": {
               "type": "integer",
               "default": 20,
-              "title": "Limit"
-            }
+              "description": "Maximum number of items to return"
+            },
+            "description": "Maximum number of items to return"
           }
         ],
         "responses": {
@@ -635,8 +651,9 @@
             "required": true,
             "schema": {
               "type": "string",
-              "title": "Dispute Id"
-            }
+              "description": "PayPal dispute id, e.g. PP-D-12345"
+            },
+            "description": "PayPal dispute id, e.g. PP-D-12345"
           }
         ],
         "responses": {
@@ -1067,7 +1084,10 @@
               }
             }
           }
-        }
+        },
+        "tags": [
+          "ops"
+        ]
       }
     }
   },
@@ -1077,40 +1097,42 @@
         "properties": {
           "id": {
             "type": "string",
-            "title": "Id"
+            "description": "Unique id"
           },
           "agent": {
             "type": "string",
-            "title": "Agent"
+            "description": "Agent name: sentinel, defender, guardian or collector"
           },
           "event_type": {
             "type": "string",
-            "title": "Event Type"
+            "description": "Event that started the run, e.g. dispute.created"
           },
           "status": {
             "type": "string",
-            "title": "Status"
+            "description": "Current status"
           },
           "steps": {
             "items": {},
             "type": "array",
-            "title": "Steps"
+            "description": "Each step the agent took"
           },
           "output": {
             "anyOf": [
               {
-                "type": "object"
+                "type": "object",
+                "description": "Agent's structured result"
               },
               {
-                "type": "null"
+                "type": "null",
+                "description": "Not set"
               }
             ],
-            "title": "Output"
+            "description": "Agent's structured result"
           },
           "started_at": {
             "type": "string",
             "format": "date-time",
-            "title": "Started At"
+            "description": "When the run started (ISO 8601)"
           }
         },
         "type": "object",
@@ -1122,62 +1144,69 @@
           "steps",
           "started_at"
         ],
-        "title": "AgentRun"
+        "title": "AgentRun",
+        "description": "AgentRun object"
       },
       "Approval": {
         "properties": {
           "id": {
             "type": "string",
-            "title": "Id"
+            "description": "Unique id"
           },
           "agent": {
             "type": "string",
-            "title": "Agent"
+            "description": "Agent name: sentinel, defender, guardian or collector"
           },
           "tool": {
             "type": "string",
-            "title": "Tool"
+            "description": "Gateway tool the agent called"
           },
           "args": {
             "type": "object",
-            "title": "Args"
+            "description": "Tool arguments the agent asked the gateway to run"
           },
           "reason": {
             "type": "string",
-            "title": "Reason"
+            "description": "Why"
           },
           "summary": {
             "anyOf": [
               {
-                "type": "string"
+                "type": "string",
+                "description": "One-line summary"
               },
               {
-                "type": "null"
+                "type": "null",
+                "description": "Not set"
               }
             ],
-            "title": "Summary"
+            "description": "One-line summary"
           },
           "amount_cents": {
             "anyOf": [
               {
-                "type": "integer"
+                "type": "integer",
+                "description": "Amount in minor units (cents)"
               },
               {
-                "type": "null"
+                "type": "null",
+                "description": "Not set"
               }
             ],
-            "title": "Amount Cents"
+            "description": "Amount in minor units (cents)"
           },
           "currency": {
             "anyOf": [
               {
-                "type": "string"
+                "type": "string",
+                "description": "ISO 4217 currency code"
               },
               {
-                "type": "null"
+                "type": "null",
+                "description": "Not set"
               }
             ],
-            "title": "Currency"
+            "description": "ISO 4217 currency code"
           },
           "status": {
             "type": "string",
@@ -1186,12 +1215,12 @@
               "approved",
               "rejected"
             ],
-            "title": "Status"
+            "description": "Current status"
           },
           "created_at": {
             "type": "string",
             "format": "date-time",
-            "title": "Created At"
+            "description": "When it was created (ISO 8601)"
           }
         },
         "type": "object",
@@ -1204,19 +1233,20 @@
           "status",
           "created_at"
         ],
-        "title": "Approval"
+        "title": "Approval",
+        "description": "Approval object"
       },
       "ApprovalBody": {
         "properties": {
           "note": {
             "type": "string",
-            "title": "Note",
             "description": "Optional reason, sealed into the ledger with the decision",
             "default": ""
           }
         },
         "type": "object",
-        "title": "ApprovalBody"
+        "title": "ApprovalBody",
+        "description": "ApprovalBody object"
       },
       "ApprovalResult": {
         "properties": {
@@ -1226,45 +1256,50 @@
               "approved",
               "rejected"
             ],
-            "title": "Status"
+            "description": "Current status"
           },
           "decision": {
             "anyOf": [
               {
-                "$ref": "#/components/schemas/Decision"
+                "$ref": "#/components/schemas/Decision",
+                "description": "Gateway decision for the executed action"
               },
               {
-                "type": "null"
+                "type": "null",
+                "description": "Not set"
               }
-            ]
+            ],
+            "description": "Gateway decision for the executed action"
           }
         },
         "type": "object",
         "required": [
           "status"
         ],
-        "title": "ApprovalResult"
+        "title": "ApprovalResult",
+        "description": "ApprovalResult object"
       },
       "ChainVerify": {
         "properties": {
           "ok": {
             "type": "boolean",
-            "title": "Ok"
+            "description": "True on success"
           },
           "checked": {
             "type": "integer",
-            "title": "Checked"
+            "description": "Number of ledger entries checked"
           },
           "broken_at": {
             "anyOf": [
               {
-                "type": "integer"
+                "type": "integer",
+                "description": "First ledger id whose hash no longer matches"
               },
               {
-                "type": "null"
+                "type": "null",
+                "description": "Not set"
               }
             ],
-            "title": "Broken At",
             "description": "First ledger id whose hash no longer matches"
           }
         },
@@ -1273,7 +1308,8 @@
           "ok",
           "checked"
         ],
-        "title": "ChainVerify"
+        "title": "ChainVerify",
+        "description": "ChainVerify object"
       },
       "Decision": {
         "properties": {
@@ -1284,37 +1320,41 @@
               "hold",
               "deny"
             ],
-            "title": "Outcome"
+            "description": "allow, hold or deny"
           },
           "reason": {
             "type": "string",
-            "title": "Reason"
+            "description": "Why"
           },
           "approval_id": {
             "anyOf": [
               {
-                "type": "string"
+                "type": "string",
+                "description": "Id of the pending approval for this action"
               },
               {
-                "type": "null"
+                "type": "null",
+                "description": "Not set"
               }
             ],
-            "title": "Approval Id"
+            "description": "Id of the pending approval for this action"
           },
           "result": {
             "anyOf": [
               {
-                "type": "object"
+                "type": "object",
+                "description": "What the executed tool returned"
               },
               {
-                "type": "null"
+                "type": "null",
+                "description": "Not set"
               }
             ],
-            "title": "Result"
+            "description": "What the executed tool returned"
           },
           "ledger_entry_id": {
             "type": "integer",
-            "title": "Ledger Entry Id"
+            "description": "Ledger entry that seals this"
           }
         },
         "type": "object",
@@ -1323,17 +1363,17 @@
           "reason",
           "ledger_entry_id"
         ],
-        "title": "Decision"
+        "title": "Decision",
+        "description": "Decision object"
       },
       "DemoResult": {
         "properties": {
           "ok": {
             "type": "boolean",
-            "title": "Ok"
+            "description": "True on success"
           },
           "message": {
             "type": "string",
-            "title": "Message",
             "description": "What happened, in plain words, for the console toast"
           }
         },
@@ -1343,81 +1383,92 @@
           "ok",
           "message"
         ],
-        "title": "DemoResult"
+        "title": "DemoResult",
+        "description": "DemoResult object"
       },
       "Dispute": {
         "properties": {
           "id": {
             "type": "string",
-            "title": "Id"
+            "description": "Unique id"
           },
           "invoice_id": {
             "anyOf": [
               {
-                "type": "string"
+                "type": "string",
+                "description": "Invoice id, e.g. INV-0007"
               },
               {
-                "type": "null"
+                "type": "null",
+                "description": "Not set"
               }
             ],
-            "title": "Invoice Id"
+            "description": "Invoice id, e.g. INV-0007"
           },
           "reason": {
             "type": "string",
-            "title": "Reason"
+            "description": "Why"
           },
           "status": {
             "type": "string",
-            "title": "Status"
+            "description": "Current status"
           },
           "amount_cents": {
             "anyOf": [
               {
-                "type": "integer"
+                "type": "integer",
+                "description": "Amount in minor units (cents)"
               },
               {
-                "type": "null"
+                "type": "null",
+                "description": "Not set"
               }
             ],
-            "title": "Amount Cents"
+            "description": "Amount in minor units (cents)"
           },
           "currency": {
             "anyOf": [
               {
-                "type": "string"
+                "type": "string",
+                "description": "ISO 4217 currency code"
               },
               {
-                "type": "null"
+                "type": "null",
+                "description": "Not set"
               }
             ],
-            "title": "Currency"
+            "description": "ISO 4217 currency code"
           },
           "buyer_name": {
             "anyOf": [
               {
-                "type": "string"
+                "type": "string",
+                "description": "Buyer's name as PayPal reports it"
               },
               {
-                "type": "null"
+                "type": "null",
+                "description": "Not set"
               }
             ],
-            "title": "Buyer Name"
+            "description": "Buyer's name as PayPal reports it"
           },
           "created_at": {
             "type": "string",
             "format": "date-time",
-            "title": "Created At"
+            "description": "When it was created (ISO 8601)"
           },
           "due_by": {
             "anyOf": [
               {
-                "type": "string"
+                "type": "string",
+                "description": "Seller response deadline (ISO 8601)"
               },
               {
-                "type": "null"
+                "type": "null",
+                "description": "Not set"
               }
             ],
-            "title": "Due By"
+            "description": "Seller response deadline (ISO 8601)"
           }
         },
         "type": "object",
@@ -1427,42 +1478,48 @@
           "status",
           "created_at"
         ],
-        "title": "Dispute"
+        "title": "Dispute",
+        "description": "Dispute object"
       },
       "DisputeDetail": {
         "properties": {
           "dispute": {
-            "$ref": "#/components/schemas/Dispute"
+            "$ref": "#/components/schemas/Dispute",
+            "description": "The dispute"
           },
           "evidence_pack": {
             "anyOf": [
               {
-                "type": "object"
+                "type": "object",
+                "description": "Defender's evidence pack, every fact citing a ledger id"
               },
               {
-                "type": "null"
+                "type": "null",
+                "description": "Not set"
               }
             ],
-            "title": "Evidence Pack",
             "description": "Defender's evidence pack, every fact citing a ledger id"
           },
           "approval_id": {
             "anyOf": [
               {
-                "type": "string"
+                "type": "string",
+                "description": "Id of the pending approval for this action"
               },
               {
-                "type": "null"
+                "type": "null",
+                "description": "Not set"
               }
             ],
-            "title": "Approval Id"
+            "description": "Id of the pending approval for this action"
           }
         },
         "type": "object",
         "required": [
           "dispute"
         ],
-        "title": "DisputeDetail"
+        "title": "DisputeDetail",
+        "description": "DisputeDetail object"
       },
       "HTTPValidationError": {
         "properties": {
@@ -1471,42 +1528,45 @@
               "$ref": "#/components/schemas/ValidationError"
             },
             "type": "array",
-            "title": "Detail"
+            "description": "Validation errors"
           }
         },
         "type": "object",
-        "title": "HTTPValidationError"
+        "title": "HTTPValidationError",
+        "description": "HTTPValidationError object"
       },
       "Health": {
         "properties": {
           "score": {
             "type": "integer",
-            "title": "Score"
+            "description": "Health score, 0-100"
           },
           "factors": {
             "items": {
               "$ref": "#/components/schemas/HealthFactor"
             },
             "type": "array",
-            "title": "Factors"
+            "description": "What the health score is made of"
           },
           "recommendations": {
             "items": {
               "type": "string"
             },
             "type": "array",
-            "title": "Recommendations"
+            "description": "Steps that would raise the score"
           },
           "appeal_pack": {
             "anyOf": [
               {
-                "type": "string"
+                "type": "string",
+                "description": "Draft appeal text Guardian wrote for PayPal, if the account is limited"
               },
               {
-                "type": "null"
+                "type": "null",
+                "description": "Not set"
               }
             ],
-            "title": "Appeal Pack"
+            "description": "Draft appeal text Guardian wrote for PayPal, if the account is limited"
           }
         },
         "type": "object",
@@ -1515,24 +1575,25 @@
           "factors",
           "recommendations"
         ],
-        "title": "Health"
+        "title": "Health",
+        "description": "Health object"
       },
       "HealthFactor": {
         "properties": {
           "name": {
             "type": "string",
-            "title": "Name"
+            "description": "Factor name"
           },
           "value": {
-            "title": "Value"
+            "description": "Measured value"
           },
           "impact": {
             "type": "string",
-            "title": "Impact"
+            "description": "How this factor moves the score"
           },
           "note": {
             "type": "string",
-            "title": "Note"
+            "description": "Free-text note"
           }
         },
         "type": "object",
@@ -1542,156 +1603,178 @@
           "impact",
           "note"
         ],
-        "title": "HealthFactor"
+        "title": "HealthFactor",
+        "description": "HealthFactor object"
       },
       "InboxEmail": {
         "properties": {
           "subject_id": {
             "anyOf": [
               {
-                "type": "string"
+                "type": "string",
+                "description": "What this is about: an invoice, dispute or email id"
               },
               {
-                "type": "null"
+                "type": "null",
+                "description": "Not set"
               }
             ],
-            "title": "Subject Id",
             "examples": [
               "INV-0007"
-            ]
+            ],
+            "description": "What this is about: an invoice, dispute or email id"
           },
           "invoice_id": {
             "anyOf": [
               {
-                "type": "string"
+                "type": "string",
+                "description": "Invoice id, e.g. INV-0007"
               },
               {
-                "type": "null"
+                "type": "null",
+                "description": "Not set"
               }
             ],
-            "title": "Invoice Id",
             "examples": [
               "INV-0007"
-            ]
+            ],
+            "description": "Invoice id, e.g. INV-0007"
           },
           "from": {
             "anyOf": [
               {
-                "type": "string"
+                "type": "string",
+                "description": "Sender address"
               },
               {
-                "type": "null"
+                "type": "null",
+                "description": "Not set"
               }
             ],
-            "title": "From",
             "examples": [
               "service@paypa1-support.com"
-            ]
+            ],
+            "description": "Sender address"
           },
           "subject": {
             "anyOf": [
               {
-                "type": "string"
+                "type": "string",
+                "description": "Email subject"
               },
               {
-                "type": "null"
+                "type": "null",
+                "description": "Not set"
               }
             ],
-            "title": "Subject",
             "examples": [
               "Payment received: $600.00"
-            ]
+            ],
+            "description": "Email subject"
           },
           "body": {
             "anyOf": [
               {
-                "type": "string"
+                "type": "string",
+                "description": "Email body text"
               },
               {
-                "type": "null"
+                "type": "null",
+                "description": "Not set"
               }
             ],
-            "title": "Body",
             "examples": [
               "You have received a payment of $600.00. Ship the order now."
-            ]
+            ],
+            "description": "Email body text"
           }
         },
         "additionalProperties": true,
         "type": "object",
-        "title": "InboxEmail"
+        "title": "InboxEmail",
+        "description": "InboxEmail object"
       },
       "InboxVerdict": {
         "properties": {
           "run_id": {
             "anyOf": [
               {
-                "type": "string"
+                "type": "string",
+                "description": "Agent run id"
               },
               {
-                "type": "null"
+                "type": "null",
+                "description": "Not set"
               }
             ],
-            "title": "Run Id"
+            "description": "Agent run id"
           },
           "status": {
             "anyOf": [
               {
-                "type": "string"
+                "type": "string",
+                "description": "Current status"
               },
               {
-                "type": "null"
+                "type": "null",
+                "description": "Not set"
               }
             ],
-            "title": "Status"
+            "description": "Current status"
           },
           "verdict": {
             "anyOf": [
               {
-                "type": "object"
+                "type": "object",
+                "description": "Sentinel verdict: scam | legit | unsure, with red flags"
               },
               {
-                "type": "null"
+                "type": "null",
+                "description": "Not set"
               }
             ],
-            "title": "Verdict",
             "description": "Sentinel verdict: scam | legit | unsure, with red flags"
           }
         },
         "type": "object",
-        "title": "InboxVerdict"
+        "title": "InboxVerdict",
+        "description": "InboxVerdict object"
       },
       "Invoice": {
         "properties": {
           "id": {
             "type": "string",
-            "title": "Id"
+            "description": "Unique id"
           },
           "buyer_email": {
             "anyOf": [
               {
-                "type": "string"
+                "type": "string",
+                "description": "Buyer's email address"
               },
               {
-                "type": "null"
+                "type": "null",
+                "description": "Not set"
               }
             ],
-            "title": "Buyer Email"
+            "description": "Buyer's email address"
           },
           "amount_cents": {
             "anyOf": [
               {
-                "type": "integer"
+                "type": "integer",
+                "description": "Amount in minor units (cents)"
               },
               {
-                "type": "null"
+                "type": "null",
+                "description": "Not set"
               }
             ],
-            "title": "Amount Cents"
+            "description": "Amount in minor units (cents)"
           },
           "currency": {
             "type": "string",
-            "title": "Currency"
+            "description": "ISO 4217 currency code"
           },
           "status": {
             "type": "string",
@@ -1700,11 +1783,11 @@
               "overdue",
               "sent"
             ],
-            "title": "Status"
+            "description": "Current status"
           },
           "days_overdue": {
             "type": "integer",
-            "title": "Days Overdue"
+            "description": "Days past the due date; 0 when paid or not yet due"
           },
           "risk": {
             "type": "string",
@@ -1713,56 +1796,64 @@
               "medium",
               "high"
             ],
-            "title": "Risk"
+            "description": "Payment risk: low, medium or high"
           },
           "shipped": {
             "type": "boolean",
-            "title": "Shipped"
+            "description": "True when tracking was added"
           },
           "tracking_number": {
             "anyOf": [
               {
-                "type": "string"
+                "type": "string",
+                "description": "Carrier tracking number"
               },
               {
-                "type": "null"
+                "type": "null",
+                "description": "Not set"
               }
             ],
-            "title": "Tracking Number"
+            "description": "Carrier tracking number"
           },
           "created_at": {
             "anyOf": [
               {
-                "type": "string"
+                "type": "string",
+                "description": "When it was created (ISO 8601)"
               },
               {
-                "type": "null"
+                "type": "null",
+                "description": "Not set"
               }
             ],
-            "title": "Created At"
+            "description": "When it was created (ISO 8601)"
           },
           "paid_at": {
             "anyOf": [
               {
                 "type": "string",
-                "format": "date-time"
+                "format": "date-time",
+                "description": "When payment was verified (ISO 8601)"
               },
               {
-                "type": "null"
+                "type": "null",
+                "description": "Not set"
               }
             ],
-            "title": "Paid At"
+            "description": "When payment was verified (ISO 8601)"
           },
           "pay_url": {
             "anyOf": [
               {
-                "type": "string"
+                "type": "string",
+                "description": "PayPal payment page for this invoice"
               },
               {
-                "type": "null"
+                "type": "null",
+                "description": "Not set"
               }
             ],
-            "title": "Pay Url"
+            "description": "PayPal payment page for this invoice"
           }
         },
         "type": "object",
@@ -1774,38 +1865,40 @@
           "risk",
           "shipped"
         ],
-        "title": "Invoice"
+        "title": "Invoice",
+        "description": "Invoice object"
       },
       "KillSwitch": {
         "properties": {
           "on": {
             "type": "boolean",
-            "title": "On"
+            "description": "True when the kill switch is on"
           }
         },
         "type": "object",
         "required": [
           "on"
         ],
-        "title": "KillSwitch"
+        "title": "KillSwitch",
+        "description": "KillSwitch object"
       },
       "KillSwitchBody": {
         "properties": {
           "on": {
             "type": "boolean",
-            "title": "On",
             "description": "true stops every agent action at the gateway",
             "default": false
           }
         },
         "type": "object",
-        "title": "KillSwitchBody"
+        "title": "KillSwitchBody",
+        "description": "KillSwitchBody object"
       },
       "LedgerEntry": {
         "properties": {
           "id": {
             "type": "integer",
-            "title": "Id"
+            "description": "Unique id"
           },
           "kind": {
             "type": "string",
@@ -1816,32 +1909,32 @@
               "approval",
               "note"
             ],
-            "title": "Kind"
+            "description": "Entry kind: event, decision, agent_step, approval or note"
           },
           "subject_id": {
             "type": "string",
-            "title": "Subject Id"
+            "description": "What this is about: an invoice, dispute or email id"
           },
           "summary": {
             "type": "string",
-            "title": "Summary"
+            "description": "One-line summary"
           },
           "payload": {
             "type": "object",
-            "title": "Payload"
+            "description": "Sealed data for this entry"
           },
           "prev_hash": {
             "type": "string",
-            "title": "Prev Hash"
+            "description": "Hash of the previous entry; empty for the first"
           },
           "hash": {
             "type": "string",
-            "title": "Hash"
+            "description": "SHA-256 of this entry plus the previous hash"
           },
           "created_at": {
             "type": "string",
             "format": "date-time",
-            "title": "Created At"
+            "description": "When it was created (ISO 8601)"
           }
         },
         "type": "object",
@@ -1855,35 +1948,37 @@
           "hash",
           "created_at"
         ],
-        "title": "LedgerEntry"
+        "title": "LedgerEntry",
+        "description": "LedgerEntry object"
       },
       "LoginBody": {
         "properties": {
           "username": {
             "type": "string",
-            "title": "Username",
             "default": "",
             "examples": [
               "judge"
-            ]
+            ],
+            "description": "dev or judge"
           },
           "password": {
             "type": "string",
-            "title": "Password",
             "default": "",
             "examples": [
               "<judge password>"
-            ]
+            ],
+            "description": "Console password"
           }
         },
         "type": "object",
-        "title": "LoginBody"
+        "title": "LoginBody",
+        "description": "LoginBody object"
       },
       "Me": {
         "properties": {
           "user": {
             "type": "string",
-            "title": "User"
+            "description": "Logged-in user name"
           },
           "role": {
             "type": "string",
@@ -1891,7 +1986,7 @@
               "dev",
               "judge"
             ],
-            "title": "Role"
+            "description": "dev (seller) or judge"
           }
         },
         "type": "object",
@@ -1899,83 +1994,92 @@
           "user",
           "role"
         ],
-        "title": "Me"
+        "title": "Me",
+        "description": "Me object"
       },
       "Ok": {
         "properties": {
           "ok": {
             "type": "boolean",
-            "title": "Ok"
+            "description": "True on success"
           }
         },
         "type": "object",
         "required": [
           "ok"
         ],
-        "title": "Ok"
+        "title": "Ok",
+        "description": "Ok object"
       },
       "ShipmentBody": {
         "properties": {
           "invoice_id": {
             "anyOf": [
               {
-                "type": "string"
+                "type": "string",
+                "description": "Invoice id, e.g. INV-0007"
               },
               {
-                "type": "null"
+                "type": "null",
+                "description": "Not set"
               }
             ],
-            "title": "Invoice Id",
             "examples": [
               "INV-0007"
-            ]
+            ],
+            "description": "Invoice id, e.g. INV-0007"
           },
           "tracking_number": {
             "anyOf": [
               {
-                "type": "string"
+                "type": "string",
+                "description": "Carrier tracking number"
               },
               {
-                "type": "null"
+                "type": "null",
+                "description": "Not set"
               }
             ],
-            "title": "Tracking Number",
             "examples": [
               "1Z999AA10123456784"
-            ]
+            ],
+            "description": "Carrier tracking number"
           },
           "carrier": {
             "type": "string",
-            "title": "Carrier",
             "default": "OTHER",
             "examples": [
               "UPS"
-            ]
+            ],
+            "description": "Shipping carrier, e.g. UPS"
           }
         },
         "type": "object",
-        "title": "ShipmentBody"
+        "title": "ShipmentBody",
+        "description": "ShipmentBody object"
       },
       "ShipmentResult": {
         "properties": {
           "ok": {
             "type": "boolean",
-            "title": "Ok"
+            "description": "True on success"
           },
           "sealed": {
             "type": "boolean",
-            "title": "Sealed"
+            "description": "True once the event is in the ledger"
           },
           "run_id": {
             "anyOf": [
               {
-                "type": "string"
+                "type": "string",
+                "description": "Agent run id"
               },
               {
-                "type": "null"
+                "type": "null",
+                "description": "Not set"
               }
             ],
-            "title": "Run Id"
+            "description": "Agent run id"
           }
         },
         "type": "object",
@@ -1983,41 +2087,42 @@
           "ok",
           "sealed"
         ],
-        "title": "ShipmentResult"
+        "title": "ShipmentResult",
+        "description": "ShipmentResult object"
       },
       "Summary": {
         "properties": {
           "money_at_risk_cents": {
             "type": "integer",
-            "title": "Money At Risk Cents"
+            "description": "Total held for approval, in cents"
           },
           "currency": {
             "type": "string",
-            "title": "Currency"
+            "description": "ISO 4217 currency code"
           },
           "pending_approvals": {
             "type": "integer",
-            "title": "Pending Approvals"
+            "description": "Actions waiting for a human"
           },
           "open_disputes": {
             "type": "integer",
-            "title": "Open Disputes"
+            "description": "Number of open disputes"
           },
           "overdue_invoices": {
             "type": "integer",
-            "title": "Overdue Invoices"
+            "description": "Number of overdue invoice events"
           },
           "health_score": {
             "type": "integer",
-            "title": "Health Score"
+            "description": "Account health score, 0-100"
           },
           "kill_switch": {
             "type": "boolean",
-            "title": "Kill Switch"
+            "description": "True when the kill switch blocks all agent actions"
           },
           "chain_ok": {
             "type": "boolean",
-            "title": "Chain Ok"
+            "description": "True when every ledger hash still matches"
           }
         },
         "type": "object",
@@ -2031,7 +2136,8 @@
           "kill_switch",
           "chain_ok"
         ],
-        "title": "Summary"
+        "title": "Summary",
+        "description": "Summary object"
       },
       "ValidationError": {
         "properties": {
@@ -2047,15 +2153,15 @@
               ]
             },
             "type": "array",
-            "title": "Location"
+            "description": "Where the invalid value is"
           },
           "msg": {
             "type": "string",
-            "title": "Message"
+            "description": "Error message"
           },
           "type": {
             "type": "string",
-            "title": "Error Type"
+            "description": "Error type"
           }
         },
         "type": "object",
@@ -2064,7 +2170,8 @@
           "msg",
           "type"
         ],
-        "title": "ValidationError"
+        "title": "ValidationError",
+        "description": "ValidationError object"
       }
     },
     "securitySchemes": {
@@ -2082,6 +2189,10 @@
     {
       "name": "demo",
       "description": "One-click story beats for judges (demo mode only)."
+    },
+    {
+      "name": "ops",
+      "description": "Liveness probe."
     },
     {
       "name": "webhooks",
