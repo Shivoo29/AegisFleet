@@ -800,6 +800,160 @@
         ]
       }
     },
+    "/api/plans": {
+      "get": {
+        "tags": [
+          "console"
+        ],
+        "summary": "Plans List",
+        "description": "What the agents have scheduled: planned, done, held, blocked and cancelled actions.",
+        "operationId": "plans_list",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/Plan"
+                  },
+                  "type": "array",
+                  "title": "Response 200 Plans List"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Login required: HTTP Basic or the session cookie"
+          }
+        },
+        "security": [
+          {
+            "HTTPBasic": []
+          }
+        ]
+      }
+    },
+    "/api/plans/{plan_id}": {
+      "patch": {
+        "tags": [
+          "console"
+        ],
+        "summary": "Plans Move",
+        "description": "Seller moves a planned action to a new time (drag on the Timeline). Sealed in the ledger.",
+        "operationId": "plans_move",
+        "security": [
+          {
+            "HTTPBasic": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "plan_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "Plan id"
+            },
+            "description": "plan_id"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PlanMove"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Plan"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Login required: HTTP Basic or the session cookie"
+          },
+          "404": {
+            "description": "No planned action with this id"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/plans/{plan_id}/cancel": {
+      "post": {
+        "tags": [
+          "console"
+        ],
+        "summary": "Plans Cancel",
+        "description": "Seller cancels a planned action. Sealed in the ledger.",
+        "operationId": "plans_cancel",
+        "security": [
+          {
+            "HTTPBasic": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "plan_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "Plan id"
+            },
+            "description": "plan_id"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Ok"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Login required: HTTP Basic or the session cookie"
+          },
+          "404": {
+            "description": "No planned action with this id"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/demo/status": {
       "get": {
         "tags": [
@@ -2011,6 +2165,109 @@
         ],
         "title": "Ok",
         "description": "Ok object"
+      },
+      "Plan": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique id"
+          },
+          "agent": {
+            "type": "string",
+            "description": "Agent name: sentinel, defender, guardian or collector"
+          },
+          "tool": {
+            "type": "string",
+            "description": "Gateway tool the agent called"
+          },
+          "args": {
+            "type": "object",
+            "description": "Tool arguments the agent asked the gateway to run"
+          },
+          "reason": {
+            "type": "string",
+            "description": "Why"
+          },
+          "title": {
+            "type": "string",
+            "description": "Title"
+          },
+          "subject_id": {
+            "type": "string",
+            "description": "What this is about: an invoice, dispute or email id"
+          },
+          "due_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Due at"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "planned",
+              "running",
+              "done",
+              "held",
+              "blocked",
+              "cancelled"
+            ],
+            "description": "Current status"
+          },
+          "outcome": {
+            "anyOf": [
+              {
+                "type": "object",
+                "description": "allow, hold or deny"
+              },
+              {
+                "type": "null",
+                "description": "Not set"
+              }
+            ],
+            "description": "allow, hold or deny"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When it was created (ISO 8601)"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Updated at"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "agent",
+          "tool",
+          "args",
+          "reason",
+          "title",
+          "subject_id",
+          "due_at",
+          "status",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "Plan",
+        "description": "Plan object"
+      },
+      "PlanMove": {
+        "properties": {
+          "due_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "New time to run it (ISO 8601)"
+          }
+        },
+        "type": "object",
+        "required": [
+          "due_at"
+        ],
+        "title": "PlanMove",
+        "description": "PlanMove object"
       },
       "ShipmentBody": {
         "properties": {

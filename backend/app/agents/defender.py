@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 import json
-from datetime import date, datetime
+from datetime import date, datetime, timedelta, timezone
 
 from app.agents.base import AgentContext, load_prompt
 from app.llm import LLMError
@@ -267,6 +267,21 @@ def _action_args(action: str, dispute_id: str, note: str, amount_cents: int | No
     }
 
 
+def _plan_deadline_guard(ctx: AgentContext, dispute: dict, dispute_id: str) -> None:
+    """Defender books its own re-check 48 hours before PayPal's response deadline."""
+    try:
+        due = datetime.fromisoformat(str(dispute.get("seller_response_due_date") or ""))
+    except ValueError:
+        return
+    if due.tzinfo is None:
+        due = due.replace(tzinfo=timezone.utc)
+    when = due - timedelta(days=2)
+    if when > datetime.now(timezone.utc):
+        ctx.plan("get_dispute", {"dispute_id": dispute_id, "subject_id": dispute_id},
+                 f"re-check {dispute_id} before PayPal's deadline",
+                 "Deadline guard: re-check 48h before PayPal decides", when)
+
+
 def handle(event: Event, ctx: AgentContext) -> EvidencePack:
     dispute_id = str(event.subject_id or "")
     loaded = ctx.tool("get_dispute", {"dispute_id": dispute_id}, "load dispute details")
@@ -315,6 +330,7 @@ def handle(event: Event, ctx: AgentContext) -> EvidencePack:
     tool, args = _action_args(action, dispute_id, note, amount_cents, currency)
     decision = ctx.tool(tool, args, f"Defender recommends {action} for {dispute_id}")
     ctx.log("note", f"defender: action={action} tool={tool} outcome={decision.outcome}")
+    _plan_deadline_guard(ctx, dispute, dispute_id)
 
     return EvidencePack(
         dispute_id=dispute_id,

@@ -92,3 +92,15 @@ export async function post<T>(path: string, body: unknown): Promise<T> {
   if (!res.ok) throw new Error(await errorText(res))
   return res.json()
 }
+
+export async function patch<T>(path: string, body: unknown): Promise<T> {
+  const res = await fetch(`${BASE}${path}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify(body),
+  })
+  if (res.status === 401) window.dispatchEvent(new Event('aegis:unauthorized'))
+  if (!res.ok) throw new Error(await errorText(res))
+  return res.json()
+}

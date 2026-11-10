@@ -16,7 +16,7 @@ from app.schemas import DemoResult, doc
 
 EMAILS = Path(__file__).resolve().parent.parent.parent / "fixtures" / "emails"
 DEMO_INVOICE = "INV-0007"
-TABLES = ("approvals", "ledger", "agent_runs", "budgets", "events", "invoices", "shipments", "settings")
+TABLES = ("plans", "approvals", "ledger", "agent_runs", "budgets", "events", "invoices", "shipments", "settings")
 
 
 def _demo_only():

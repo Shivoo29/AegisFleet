@@ -31,6 +31,13 @@ class AgentContext:
         self.log("tool", f"{self.agent}.{tool} -> {dec.outcome}: {dec.reason}")
         return dec
 
+    def plan(self, tool: str, args: dict, reason: str, title: str, due_at) -> str:
+        """Schedule a future action. It runs through the gateway when due; the seller can move or cancel it."""
+        from app import plans
+        pid = plans.add(self.agent, tool, args, reason, title, due_at)
+        self.log("note", f"{self.agent} planned '{title}' for {due_at:%d %b %H:%M} UTC")
+        return pid
+
     def llm(self, system: str, user: str, schema: type[BaseModel]) -> BaseModel:
         result = llm_complete(system, user, schema)
         self.log("llm", f"{schema.__name__}")

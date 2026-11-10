@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 import json
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 
 from app.agents.base import AgentContext, load_prompt
 from app.llm import LLMError
@@ -102,6 +102,11 @@ def _sync_tracking(event: Event, ctx: AgentContext, entries: list[LedgerEntry]) 
             },
             f"register {carrier} tracking for {invoice_id}",
         )
+        ctx.plan("get_shipment_tracking",
+                 {"invoice_id": invoice_id, "subject_id": invoice_id, "transaction_id": transaction_id,
+                  "tracking_number": tracking_number, "carrier": carrier},
+                 f"check {carrier} tracking for {invoice_id}", "Check the parcel with the carrier",
+                 event.received_at + timedelta(days=1))
     elif event.type == "delivery.confirmed":
         context = _tracking_context(entries, event)
         if context is None:

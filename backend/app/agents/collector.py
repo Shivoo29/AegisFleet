@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import json
 import re
-from datetime import date, datetime
+from datetime import date, datetime, timedelta, timezone
 
 from app.agents.base import AgentContext, load_prompt
 from app.llm import LLMError
@@ -295,6 +295,19 @@ def _llm_note(
     return fallback
 
 
+def _plan_follow_ups(ctx: AgentContext, invoice_id: str, tool_invoice_id: str, amount, currency: str,
+                     days: int, reminders: int) -> None:
+    """Collector schedules its own next steps: a firmer nudge in 3 days, a final notice at 14 days overdue
+    (never inside the same week, so the weekly cap holds). Paying the invoice cancels both."""
+    now = datetime.now(timezone.utc)
+    base = {"invoice_id": tool_invoice_id, "subject_id": invoice_id, "subject": f"Payment reminder for {invoice_id}"}
+    steps = [(3, "firm", "Follow-up reminder (firmer)"), (max(7, 14 - days), "final", "Final notice before escalation")]
+    for i, (in_days, tone, title) in enumerate(steps, start=1):
+        note = _fallback_note(invoice_id, amount, currency, days + in_days, tone, "remind", False, reminders + i)
+        ctx.plan(REMINDER_TOOL, {**base, "note": note}, f"Collector {tone} reminder for {invoice_id}",
+                 title, now + timedelta(days=in_days))
+
+
 def handle(event: Event, ctx: AgentContext) -> CollectorPlan:
     invoice_id = str(_field(event, "invoice_id") or event.subject_id)
     entries = ctx.ledger_find(limit=1000)
@@ -334,6 +347,8 @@ def handle(event: Event, ctx: AgentContext) -> CollectorPlan:
             f"Collector {tone} reminder for {invoice_id}, {_days_phrase(days)} overdue",
         )
         ctx.log("note", f"collector: reminder outcome={decision.outcome}")
+        if decision.outcome == "allow":
+            _plan_follow_ups(ctx, invoice_id, tool_invoice_id, amount, currency, days, reminders)
 
     return CollectorPlan(
         invoice_id=invoice_id,

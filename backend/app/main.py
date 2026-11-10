@@ -14,11 +14,28 @@ from app.db import init_schema
 from app import mcp_server
 
 
+async def _run_plans_forever() -> None:
+    import asyncio
+    import logging
+    from app import plans
+    while True:
+        try:
+            await asyncio.to_thread(plans.run_due)
+        except Exception:  # noqa: BLE001 — keep the loop alive; the next tick retries
+            logging.getLogger("aegis.plans").exception("plan runner tick failed")
+        await asyncio.sleep(15)
+
+
 @asynccontextmanager
 async def _lifespan(_app):
+    import asyncio
+    from app.config import get_settings
     init_schema()  # fail loudly if DB is down
+    runner = asyncio.create_task(_run_plans_forever()) if get_settings().plan_runner else None
     async with mcp_server.running():
         yield
+    if runner:
+        runner.cancel()
 
 
 app = FastAPI(

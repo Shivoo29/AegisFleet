@@ -330,3 +330,31 @@ def health() -> dict:
     recs = last["recommendations"] if last.get("factors") == live else guardian._fallback_recommendations(flags)
     return {"score": guardian._score(metrics, flags), "factors": live,
             "recommendations": recs, "appeal_pack": last.get("appeal_pack")}
+
+
+@router.get("/plans", dependencies=[Depends(_basic_auth)], **doc(list[S.Plan]))
+def plans_list() -> list:
+    """What the agents have scheduled: planned, done, held, blocked and cancelled actions."""
+    from app import plans
+    return plans.listing()
+
+
+@router.patch("/plans/{plan_id}", **doc(S.Plan, extra={404: {"description": "No planned action with this id"}}))
+def plans_move(plan_id: str, body: S.PlanMove, user: str = Depends(_basic_auth)) -> dict:
+    """Seller moves a planned action to a new time (drag on the Timeline). Sealed in the ledger."""
+    from app import plans
+    try:
+        return plans.move(plan_id, body.due_at, user)
+    except KeyError:
+        raise HTTPException(404, "plan not found or already ran")
+
+
+@router.post("/plans/{plan_id}/cancel", **doc(S.Ok, extra={404: {"description": "No planned action with this id"}}))
+def plans_cancel(plan_id: str, user: str = Depends(_basic_auth)) -> dict:
+    """Seller cancels a planned action. Sealed in the ledger."""
+    from app import plans
+    try:
+        plans.cancel(plan_id, user, "cancelled from the Timeline")
+    except KeyError:
+        raise HTTPException(404, "plan not found or already ran")
+    return {"ok": True}

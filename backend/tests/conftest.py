@@ -8,6 +8,7 @@ os.environ.setdefault("CONSOLE_PASSWORD", "dev")
 os.environ.setdefault("DEMO_MODE", "true")
 os.environ.setdefault("KILL_SWITCH", "false")
 os.environ.setdefault("APPROVAL_THRESHOLD_CENTS", "10000")
+os.environ.setdefault("PLAN_RUNNER", "false")
 
 import pytest
 
@@ -23,6 +24,6 @@ def _init_schema() -> None:
 def _truncate() -> None:
     with conn() as c:
         with c.cursor() as cur:
-            for t in ("approvals", "ledger", "agent_runs", "budgets", "events", "invoices", "shipments", "settings"):
+            for t in ("plans", "approvals", "ledger", "agent_runs", "budgets", "events", "invoices", "shipments", "settings"):
                 cur.execute(f"TRUNCATE {t} RESTART IDENTITY CASCADE")
         c.commit()

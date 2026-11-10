@@ -1150,7 +1150,7 @@ body::after {
 .seal__payload { margin: 0; max-height: 260px; overflow: auto; overscroll-behavior: contain; background: var(--ink); color: #d7efe9; border-radius: 8px; padding: 0.8rem 1rem; font-family: var(--font-mono); font-size: 0.75rem; }
 
 /* Bryntum Scheduler (Timeline) */
-.timeline-host { height: 560px; border: 1px solid var(--border, #d9e2df); border-radius: 12px; overflow: hidden; }
+.timeline-host { height: 660px; border: 1px solid var(--border, #d9e2df); border-radius: 12px; overflow: hidden; }
 .timeline-host .b-grid-header { background: var(--ink, #0b3530); color: #fff; }
 .timeline-host .b-grid-header .b-grid-header-text, .timeline-host .b-sch-header-text { color: #e8f4f1; }
 .tl-role { font-size: 0.78rem; color: var(--text-muted, #5b6b67); }
@@ -1162,3 +1162,7 @@ body::after {
   margin: 0; padding: 0.75rem 0.9rem; border-radius: 10px; background: var(--ink, #0b3530); color: #e8f4f1;
   font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 0.78rem; white-space: pre-wrap; word-break: break-all;
 }
+.tl-legend { display: flex; flex-wrap: wrap; gap: 0.4rem 1.1rem; margin: 0.7rem 0 0; font-size: 0.82rem; color: var(--text-muted, #5b6b67); }
+.tl-legend strong { color: var(--ink, #0b3530); flex-basis: 100%; }
+.timeline-host .tl-planned.b-sch-event, .timeline-host .tl-planned .b-sch-event { border-style: dashed !important; border-width: 2px !important; cursor: grab; }
+.timeline-host .b-sch-current-time { border-left: 2px solid #b42318 !important; }

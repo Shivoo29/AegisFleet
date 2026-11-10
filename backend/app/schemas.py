@@ -164,4 +164,23 @@ class DemoResult(BaseModel):
     message: str = Field(description="What happened, in plain words, for the console toast")
 
 
+class Plan(BaseModel):
+    id: str
+    agent: str
+    tool: str
+    args: dict
+    reason: str
+    title: str
+    subject_id: str
+    due_at: datetime
+    status: Literal["planned", "running", "done", "held", "blocked", "cancelled"]
+    outcome: dict | None = None
+    created_at: datetime
+    updated_at: datetime
+
+
+class PlanMove(BaseModel):
+    due_at: datetime = Field(description="New time to run it (ISO 8601)")
+
+
 Ledger = list[LedgerEntry]
