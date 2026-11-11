@@ -13,6 +13,7 @@ from contextlib import asynccontextmanager
 from datetime import datetime, timezone
 
 from mcp.server.fastmcp import FastMCP
+from mcp.types import ToolAnnotations
 from mcp.server.streamable_http_manager import StreamableHTTPSessionManager
 from starlette.responses import JSONResponse
 
@@ -72,14 +73,20 @@ def _cents(amount_usd: float) -> int:
 
 # ---------- tools ----------
 
-@mcp.tool()
+def _hints(read_only: bool, destructive: bool, idempotent: bool, open_world: bool) -> ToolAnnotations:
+    """All four MCP hints, explicit, so hosts can warn before money moves. open_world = talks to PayPal."""
+    return ToolAnnotations(readOnlyHint=read_only, destructiveHint=destructive,
+                           idempotentHint=idempotent, openWorldHint=open_world)
+
+
+@mcp.tool(annotations=_hints(read_only=True, destructive=False, idempotent=True, open_world=False))
 def list_invoices() -> list:
     """The seller's invoices: amount, paid / overdue / refunded status, days overdue, PayPal payment link."""
     from app.api import invoices
     return invoices()
 
 
-@mcp.tool()
+@mcp.tool(annotations=_hints(read_only=False, destructive=False, idempotent=False, open_world=True))
 def create_invoice(item: str, amount_usd: float, buyer_email: str = "") -> dict:
     """Issue a real PayPal (sandbox) invoice for one item and return its payment link.
 
@@ -114,14 +121,14 @@ def create_invoice(item: str, amount_usd: float, buyer_email: str = "") -> dict:
             "create": _decision(made), "send": _decision(sent)}
 
 
-@mcp.tool()
+@mcp.tool(annotations=_hints(read_only=False, destructive=False, idempotent=False, open_world=True))
 def send_payment_reminder(invoice_id: str, note: str = "") -> dict:
     """Send PayPal's payment reminder for an unpaid invoice. Capped at 2 per invoice per week."""
     return _decision(_call("send_invoice_reminder", {**_invoice(invoice_id), "note": note[:400]},
                            f"remind the buyer about {invoice_id}"))
 
 
-@mcp.tool()
+@mcp.tool(annotations=_hints(read_only=False, destructive=True, idempotent=False, open_world=True))
 def refund_payment(invoice_id: str, amount_usd: float, reason: str) -> dict:
     """Refund the buyer of an invoice. The money can only go back to whoever paid it, and never more than
     PayPal says they paid. Refunds of $100 or more are held until the seller approves them."""
@@ -129,7 +136,7 @@ def refund_payment(invoice_id: str, amount_usd: float, reason: str) -> dict:
                                               "note": reason[:255]}, f"refund ${amount_usd:.2f}: {reason}"))
 
 
-@mcp.tool()
+@mcp.tool(annotations=_hints(read_only=True, destructive=False, idempotent=True, open_world=False))
 def check_approval(approval_id: str) -> dict:
     """Has the seller approved or rejected a held action yet, and what happened when it ran?"""
     rows = _rows("SELECT id, tool, status, args, decided_by, decided_at FROM approvals WHERE id=%s", (approval_id,))
@@ -145,7 +152,7 @@ def check_approval(approval_id: str) -> dict:
     return out
 
 
-@mcp.tool()
+@mcp.tool(annotations=_hints(read_only=False, destructive=False, idempotent=False, open_world=False))
 def check_payment_email(sender: str, subject: str, body: str) -> dict:
     """Ask AegisFleet's Sentinel agent whether a 'you've been paid' email is real. It checks the email
     against verified PayPal payments in the ledger, not against what the email claims."""
@@ -154,7 +161,7 @@ def check_payment_email(sender: str, subject: str, body: str) -> dict:
     return inbox(InboxEmail(**{"from": sender, "subject": subject, "body": body}))
 
 
-@mcp.tool()
+@mcp.tool(annotations=_hints(read_only=True, destructive=False, idempotent=True, open_world=False))
 def get_history(invoice_id: str) -> list:
     """Every sealed ledger entry about an invoice or dispute, oldest first, with its hash."""
     from app.ledger import find
@@ -162,7 +169,7 @@ def get_history(invoice_id: str) -> list:
             for e in reversed(find(subject_id=invoice_id, limit=100))]
 
 
-@mcp.tool()
+@mcp.tool(annotations=_hints(read_only=True, destructive=False, idempotent=True, open_world=False))
 def verify_ledger() -> dict:
     """Recompute the whole hash chain. ok=false names the first entry someone edited."""
     from app.ledger import verify

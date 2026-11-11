@@ -86,3 +86,12 @@ def test_token_link_works_for_url_only_clients() -> None:
         bad = client.post("/mcp?token=dev.9999999999.forged", json={"jsonrpc": "2.0", "id": 1, "method": "tools/list"},
                           headers={"Accept": "application/json, text/event-stream"})
         assert bad.status_code == 401
+
+
+def test_every_tool_declares_all_four_hints() -> None:
+    import asyncio
+    for t in asyncio.run(m.mcp.list_tools()):
+        a = t.annotations
+        assert a is not None and None not in (a.readOnlyHint, a.destructiveHint, a.idempotentHint, a.openWorldHint), t.name
+    refund = next(t for t in asyncio.run(m.mcp.list_tools()) if t.name == "refund_payment")
+    assert refund.annotations.destructiveHint is True
