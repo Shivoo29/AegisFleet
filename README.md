@@ -11,6 +11,7 @@
 [![MCP](https://img.shields.io/badge/MCP-server-1f6feb?style=for-the-badge)](#-connect-any-ai-agent-mcp)
 
 [![CI](https://github.com/Shivoo29/AegisFleet/actions/workflows/ci.yml/badge.svg)](https://github.com/Shivoo29/AegisFleet/actions/workflows/ci.yml)
+[![M8ven Verified](https://m8ven.ai/badge/mcp/shivoo29/aegisfleet?variant=verified)](https://m8ven.ai/mcp/shivoo29/aegisfleet?s=readme)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 ![PayPal sandbox](https://img.shields.io/badge/PayPal-sandbox-003087?logo=paypal&logoColor=white)
 ![Python](https://img.shields.io/badge/Python-3.12-3776AB?logo=python&logoColor=white)
