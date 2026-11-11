@@ -305,7 +305,7 @@ def _plan_deadline_guard(ctx: AgentContext, dispute: dict, dispute_id: str) -> N
 
 def handle(event: Event, ctx: AgentContext) -> EvidencePack:
     dispute_id = str(event.subject_id or "")
-    loaded = ctx.tool("get_dispute", {"dispute_id": dispute_id}, "load dispute details")
+    loaded = ctx.act("get_dispute", {"dispute_id": dispute_id}, "load dispute details")
     tool_result = loaded.result if loaded.outcome == "allow" and isinstance(loaded.result, dict) else {}
     dispute = _dispute(event, tool_result)
     dispute_id = str(dispute.get("dispute_id") or dispute_id)
@@ -356,7 +356,7 @@ def handle(event: Event, ctx: AgentContext) -> EvidencePack:
                 f"{k}={'yes' if v else 'no'}" for k, v in checklist.items()) + "."
         ctx.log("note", f"defender: AI-written note {'accepted' if written else 'rejected'} ({why})")
     tool, args = _action_args(action, dispute_id, note, amount_cents, currency)
-    decision = ctx.tool(tool, args, f"Defender recommends {action} for {dispute_id}")
+    decision = ctx.act(tool, args, f"Defender recommends {action} for {dispute_id}")
     ctx.log("note", f"defender: action={action} tool={tool} outcome={decision.outcome}")
     _plan_deadline_guard(ctx, dispute, dispute_id)
 

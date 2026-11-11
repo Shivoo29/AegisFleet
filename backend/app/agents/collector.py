@@ -337,7 +337,7 @@ def handle(event: Event, ctx: AgentContext) -> CollectorPlan:
             risk, tone, action, total_invoices, late_invoices, note,
         )
         tool_invoice_id = str(_field(event, "paypal_invoice_id") or invoice_id)
-        decision = ctx.tool(
+        decision = ctx.act(
             REMINDER_TOOL,
             {
                 "invoice_id": tool_invoice_id,

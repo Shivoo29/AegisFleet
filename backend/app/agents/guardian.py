@@ -91,7 +91,7 @@ def _sync_tracking(event: Event, ctx: AgentContext, entries: list[LedgerEntry]) 
             ctx.log("note", "guardian: shipment.created has no tracking number; skipped PayPal sync")
             return
         invoice_id, tracking_number, carrier, transaction_id = context
-        ctx.tool(
+        ctx.act(
             "create_shipment_tracking",
             {
                 "invoice_id": invoice_id,
@@ -113,7 +113,7 @@ def _sync_tracking(event: Event, ctx: AgentContext, entries: list[LedgerEntry]) 
             ctx.log("note", "guardian: delivery.confirmed has no shipment tracking; skipped PayPal update")
             return
         invoice_id, tracking_number, carrier, transaction_id = context
-        ctx.tool(
+        ctx.act(
             "update_shipment_tracking",
             {
                 "invoice_id": invoice_id,

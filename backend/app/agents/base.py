@@ -26,7 +26,7 @@ class AgentContext:
         self.run_id = run_id
         self.steps: list[dict] = []
 
-    def tool(self, tool: str, args: dict, reason: str) -> Decision:
+    def act(self, tool: str, args: dict, reason: str) -> Decision:
         dec = gateway_call(self.agent, tool, args, reason)
         self.log("tool", f"{self.agent}.{tool} -> {dec.outcome}: {dec.reason}")
         return dec
